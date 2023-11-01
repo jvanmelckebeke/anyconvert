@@ -17,14 +17,25 @@ def bytes2human(raw):
     return size(raw, system=alternative)
 
 
+def convert_input_to_output_path(input_fname, output_ext):
+    basename_with_ext = os.path.basename(input_fname)
+    basename, _ = os.path.splitext(basename_with_ext)
+
+    return f"/tmp/{basename}.{output_ext}"
+
+
 def webp_to_jpg(input):
     if input is None:
         return None
 
+    output_filename = convert_input_to_output_path(input, "jpg")
+
     image = Image.open(input).convert("RGB")
-    output = io.BytesIO()
-    image.save(output, format="jpeg")
-    return Image.open(output)
+    image.save(output_filename, format="jpeg")
+
+    print(f"saved image to {output_filename}")
+
+    return output_filename
 
 
 def webm_to_mp4(input, progress=gr.Progress()):
@@ -33,10 +44,7 @@ def webm_to_mp4(input, progress=gr.Progress()):
     if input_file_path is None:
         return None
 
-    basename_with_ext = os.path.basename(input_file_path)
-    basename, _ = os.path.splitext(basename_with_ext)
-
-    output_file_path = f"/tmp/{basename}.mp4"
+    output_file_path = convert_input_to_output_path(input_file_path, "mp4")
 
     # run ffmpeg to convert the file to mp4
     # the command to be run is
@@ -69,8 +77,6 @@ def webm_to_mp4(input, progress=gr.Progress()):
 
         print(f"input size: {input_size}, output size: {output_size}")
 
-        progress_ratio = raw_output_size / raw_input_size
-
         progress((raw_output_size, raw_input_size), unit="bytes")
 
         time.sleep(1)
@@ -78,10 +84,10 @@ def webm_to_mp4(input, progress=gr.Progress()):
     if ffmpeg_process.returncode != 0:
         raise Exception("ffmpeg failed to convert the file")
 
-    return "/tmp/output.mp4"
+    return output_file_path
 
 
-with gr.Blocks() as iface:
+with gr.Blocks(title="Webany converter") as iface:
     with gr.Tab("webp to jpg"):
         with gr.Row():
             with gr.Column(scale=1):
@@ -105,4 +111,6 @@ with gr.Blocks() as iface:
         submit_btn.click(fn=webm_to_mp4, inputs=in_video, outputs=out_video)
 
 if __name__ == '__main__':
-    iface.launch()
+    port = int(os.environ.get("GRADIO_PORT", 8088))
+
+    iface.launch(server_port=port, server_name="0.0.0.0")

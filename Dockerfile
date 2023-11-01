@@ -1,9 +1,12 @@
 FROM python:3.10.0-alpine3.15
 
-ENV PYTHONUNBUFFERED=0
+ENV PYTHONUNBUFFERED=1
+ENV GRADIO_PORT=8080
 
 RUN apk update
 RUN apk add --no-cache ffmpeg
+
+RUN mkdir -p /tmp/gradio
 
 WORKDIR /app
 

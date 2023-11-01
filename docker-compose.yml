@@ -1,0 +1,35 @@
+version: "3.7"
+
+x-logging: &logging
+  logging:
+    driver: json-file
+    options:
+      max-size: 1m
+
+services:
+  webconvert:
+    build: .
+    labels:
+      # custom setup for traefik
+      - "traefik.http.routers.converter.rule=Host(`converter.desktop.lan`)"
+      - "traefik.http.services.converter.loadbalancer.server.port=8080"
+    container_name: webconvert
+    expose:
+      - 8080
+    environment:
+      GRADIO_PORT: 8080
+    restart: unless-stopped
+    stop_grace_period: 5s
+    stop_signal: SIGINT
+    networks:
+      - webconvert
+
+    # note: if you do not use traefik or another reverse proxy, don't forget to expose your port to the host
+    # ports:
+    #  - 8080:8080
+
+
+networks:
+  webconvert:
+    driver: bridge
+    name: webconvert
