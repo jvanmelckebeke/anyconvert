@@ -4,7 +4,7 @@ ENV PYTHONUNBUFFERED=1
 ENV GRADIO_PORT=8080
 
 RUN apk update
-RUN apk add --no-cache ffmpeg
+RUN apk add --no-cache ffmpeg imagemagick
 
 RUN mkdir -p /tmp/gradio
 

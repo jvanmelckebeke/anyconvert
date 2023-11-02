@@ -9,6 +9,7 @@ x-logging: &logging
 services:
   webconvert:
     build: .
+    image: jvanmelckebeke/anyconvert:latest
     labels:
       # custom setup for traefik
       - "traefik.http.routers.converter.rule=Host(`converter.desktop.lan`)"
@@ -27,7 +28,6 @@ services:
     # note: if you do not use traefik or another reverse proxy, don't forget to expose your port to the host
     # ports:
     #  - 8080:8080
-
 
 networks:
   webconvert:
