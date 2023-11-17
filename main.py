@@ -33,5 +33,6 @@ with gr.Blocks(title="Webany converter") as iface:
 
 if __name__ == '__main__':
     port = int(os.environ.get("GRADIO_PORT", 8088))
+    iface.queue()
 
     iface.launch(server_port=port, server_name="0.0.0.0")
