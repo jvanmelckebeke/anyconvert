@@ -85,6 +85,8 @@ jobs:
           images: ${{ env.REGISTRY_IMAGE }}
           tags: |
             type=schedule
+            type=ref,event=branch
+            type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
@@ -101,4 +103,4 @@ jobs:
             $(printf '${{ env.REGISTRY_IMAGE }}@sha256:%s ' *)
       - name: Inspect image
         run: |
-          docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:${{ steps.meta.outputs.version }}  
+          docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:latest
