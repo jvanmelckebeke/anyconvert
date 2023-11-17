@@ -12,7 +12,9 @@ WORKDIR /app
 
 COPY requirements.txt requirements.txt
 
-RUN pip install -r requirements.txt --no-cache-dir --timeout 1000 && \
+
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt --no-cache-dir && \
   rm -rf /root/.cache/pip
 
 COPY main.py .
