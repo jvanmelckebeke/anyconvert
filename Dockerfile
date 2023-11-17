@@ -1,5 +1,7 @@
 FROM --platform=linux/amd64 python:3.10.0-alpine3.15 as base
 
+LABEL org.opencontainers.image.authors=
+
 ENV PYTHONUNBUFFERED=1
 ENV GRADIO_PORT=8080
 
