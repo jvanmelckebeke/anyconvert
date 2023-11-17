@@ -11,6 +11,7 @@ def webp_to_jpg(input):
 
     image = Image.open(input).convert("RGB")
     image.save(output_filename, format="jpeg")
+    image.close()
 
     print(f"saved image to {output_filename}")
 
