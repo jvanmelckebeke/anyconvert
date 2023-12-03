@@ -1,4 +1,3 @@
-
 ARG BASE_TAG_ARM64=3.10.0-buster
 ARG BASE_TAG_AMD64=3.10.0-alpine3.15
 
@@ -71,21 +70,34 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
 
 RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     apt-get install -y --no-install-recommends \
-    wget build-essential cmake openssl git
-
-RUN update-ca-certificates
-
-RUN mkdir -p  /magick
-
-RUN git clone https://github.com/SoftCreatR/imei.git
-
-WORKDIR /imei
+    wget build-essential cmake openssl git ca-certificates
 
 RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
-    bash ./imei.sh \
+    apt-get install -y --no-install-recommends \
+    git curl make cmake automake libtool yasm g++ \
+    pkg-config perl libde265-dev libx265-dev libltdl-dev \
+    libopenjp2-7-dev liblcms2-dev libbrotli-dev libzip-dev \
+    libbz2-dev liblqr-1-0-dev libzstd-dev libgif-dev libjpeg-dev \
+    libopenexr-dev libpng-dev libwebp-dev librsvg2-dev libwmf-dev \
+    libxml2-dev libtiff-dev libraw-dev ghostscript gsfonts ffmpeg \
+    libpango1.0-dev libdjvulibre-dev libfftw3-dev libgs-dev libgraphviz-dev
+
+
+RUN mkdir -p  /magick /magick-config /magick-build /magick-work
+
+
+RUN wget https://dist.1-2.dev/imei.sh -qO /imei.sh && \
+    chmod +x /imei.sh
+
+
+RUN bash ./imei.sh \
+    --no-backports \
+    --skip-jxl \
     --skip-libheif \
-    --skip-jpeg-xl \
     --build-dir /magick
+
+# dummy entrypoint
+ENTRYPOINT ["/bin/bash"]
 
 FROM python:${RUNTIME_TAG_ARM64} as dependencies-arm64
 
@@ -100,7 +112,10 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     && \
     apt-get clean
 
-COPY --from=imagemagick /magick /usr/local/
+COPY --from=imagemagick /magick/bin /usr/local/bin
+COPY --from=imagemagick /magick/lib /usr/local/lib
+COPY --from=imagemagick /magick/include /usr/local/include
+#COPY --from=imagemagick /magick/share /usr/local/share
 
 
 FROM python:${RUNTIME_TAG_AMD64} as dependencies-amd64
@@ -108,8 +123,15 @@ FROM python:${RUNTIME_TAG_AMD64} as dependencies-amd64
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apk update && \
-  apk add --no-cache ffmpeg imagemagick && \
-    rm -rf /var/cache/apk/*
+  apk add --no-cache\
+    ffmpeg \
+#    imagemagick \
+    && rm -rf /var/cache/apk/*
+
+COPY --from=imagemagick /magick/bin /usr/local/bin
+COPY --from=imagemagick /magick/lib /usr/local/lib
+COPY --from=imagemagick /magick/include /usr/local/include
+#COPY --from=imagemagick /magick/share /usr/local/share
 
 
 FROM dependencies-${TARGETARCH} as runtime
