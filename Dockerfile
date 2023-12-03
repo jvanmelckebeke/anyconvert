@@ -70,7 +70,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     apt-get update
 
 RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
-    apt-get install -y \
+    apt-get install -y --no-install-recommends \
     wget build-essential cmake openssl git
 
 RUN update-ca-certificates
@@ -85,7 +85,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     bash ./imei.sh \
     --skip-libheif \
     --skip-jpeg-xl \
-    --build-dir magick/
+    --build-dir /magick
 
 FROM python:${RUNTIME_TAG_ARM64} as dependencies-arm64
 
