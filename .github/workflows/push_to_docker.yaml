@@ -5,9 +5,11 @@ on:
   push:
     branches:
       - 'main'
+      - 'v1'
 
 env:
   REGISTRY_IMAGE: jvanmelckebeke/anyconvert
+  IMAGE_TAG: ${{ github.ref_name }}
 
 jobs:
   build:
@@ -98,7 +100,7 @@ jobs:
       - name: Create manifest list and push
         working-directory: /tmp/digests
         run: |
-          docker buildx imagetools create -t ${{ env.REGISTRY_IMAGE}}:latest \
+          docker buildx imagetools create -t ${{ env.REGISTRY_IMAGE}}:${{ env.IMAGE_TAG }} \
             $(printf '${{ env.REGISTRY_IMAGE }}@sha256:%s ' *)
       - name: Inspect image
         run: |
