@@ -112,12 +112,6 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     && \
     apt-get clean
 
-COPY --from=imagemagick /magick/bin /usr/local/bin
-COPY --from=imagemagick /magick/lib /usr/local/lib
-COPY --from=imagemagick /magick/include /usr/local/include
-#COPY --from=imagemagick /magick/share /usr/local/share
-
-
 FROM python:${RUNTIME_TAG_AMD64} as dependencies-amd64
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -128,13 +122,14 @@ RUN apk update && \
 #    imagemagick \
     && rm -rf /var/cache/apk/*
 
+FROM dependencies-${TARGETARCH} as dependencies
+
 COPY --from=imagemagick /magick/bin /usr/local/bin
 COPY --from=imagemagick /magick/lib /usr/local/lib
 COPY --from=imagemagick /magick/include /usr/local/include
 #COPY --from=imagemagick /magick/share /usr/local/share
 
-
-FROM dependencies-${TARGETARCH} as runtime
+FROM dependencies as runtime
 
 ENV PYTHONUNBUFFERED=1
 ENV GRADIO_PORT=8080
