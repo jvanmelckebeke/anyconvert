@@ -91,10 +91,10 @@ RUN wget https://dist.1-2.dev/imei.sh -qO /imei.sh && \
 
 
 RUN bash ./imei.sh \
-    --no-backports \
     --skip-jxl \
     --skip-libheif \
-    --build-dir /magick
+    --build-dir /magick \
+    --config-dir /magick-config
 
 # dummy entrypoint
 ENTRYPOINT ["/bin/bash"]
@@ -107,10 +107,24 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     apt-get update && \
     apt-get install -y --no-install-recommends \
     ffmpeg \
+    imagemagick \
     && \
     rm -rf /var/lib/apt/lists/* \
     && \
     apt-get clean
+
+COPY --from=imagemagick /magick/bin /usr/local/bin
+COPY --from=imagemagick /magick/lib /usr/local/lib
+COPY --from=imagemagick /magick/include /usr/local/include
+COPY --from=imagemagick /magick/share /usr/local/share
+
+COPY --from=imagemagick /magick-config /usr/local/etc
+
+ENV PATH="/usr/local/bin:$PATH"
+ENV LD_LIBRARY_PATH="/usr/local/lib:$LD_LIBRARY_PATH"
+
+RUN ldconfig /usr/local/lib
+
 
 FROM python:${RUNTIME_TAG_AMD64} as dependencies-amd64
 
@@ -119,34 +133,36 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apk update && \
   apk add --no-cache\
     ffmpeg \
-#    imagemagick \
-    && rm -rf /var/cache/apk/*
+    libbz2 \
+    fftw-double-libs \
+    imagemagick \
+    && rm -rf /var/cache/apk/* \
+    && rm -rf /var/lib/apt/lists/*
+
 
 FROM dependencies-${TARGETARCH} as dependencies
 
-COPY --from=imagemagick /magick/bin /usr/local/bin
-COPY --from=imagemagick /magick/lib /usr/local/lib
-COPY --from=imagemagick /magick/include /usr/local/include
-#COPY --from=imagemagick /magick/share /usr/local/share
 
 FROM dependencies as runtime
 
 ENV PYTHONUNBUFFERED=1
 ENV GRADIO_PORT=8080
 
-ENV VIRTUAL_ENV=/venv
-ENV VENV_DIR=/venv
 
 
 RUN mkdir -p /tmp/gradio
 
-COPY --from=build /venv $VIRTUAL_ENV
 
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-ENV PYTHONPATH="$VIRTUAL_ENV/lib/python3.10/site-packages:$PYTHONPATH"
+COPY --from=build /venv/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
+COPY --from=build /venv/bin/uvicorn /usr/local/bin/uvicorn
+
+ENV PATH="/usr/local/bin:$PATH"
 
 # otherwise matplotlib will always try to build the font cache
-RUN python -c "import matplotlib.pyplot"
+RUN python -c "import matplotlib.pyplot" && \
+    find -name "__pycache__" -exec rm -rf {} + && \
+    find -name "*.py[cod]" -delete
+
 
 WORKDIR /app
 
