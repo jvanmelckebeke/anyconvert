@@ -26,7 +26,6 @@ async def get_file(filename: str):
 
 @app.post("/image")
 async def upload_image(file: UploadFile = File(...)):
-    identifier = file.filename.split(".")[0]
     with open(f"/tmp/{file.filename}", "wb") as buffer:
         buffer.write(file.file.read())
 
@@ -37,16 +36,15 @@ async def upload_image(file: UploadFile = File(...)):
     return {"file": f"/uploads{new_file}"}
 
 
-@app.post("/video", response_class=FileResponse)
+@app.post("/video")
 async def upload_video(file: UploadFile = File(...)):
     with open(f"/tmp/{file.filename}", "wb") as buffer:
         buffer.write(file.file.read())
 
     new_file = media_to_mp4(f"/tmp/{file.filename}")
+    new_file = new_file.replace("/tmp", "")
 
-    print(new_file)
-
-    return FileResponse(new_file, media_type="video/mp4")
+    return {"file": f"/uploads{new_file}"}
 
 
 if __name__ == "__main__":

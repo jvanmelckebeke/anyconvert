@@ -1,21 +1,36 @@
 <template>
-  <div class="flex">
-    <h2>To JPG</h2>
-    <div class="grid-container ">
-      <div class="grid-item">
+  <div class="centered">
+    <h2 class="item">{{ header }}</h2>
+    <div class="centered-container ">
+      <div class="item">
         <FileUpload mode="basic" name="file" :url="uploadUrl"
                     auto
                     :accept="accept"
-                    @upload="onUpload"></FileUpload>
+                    @upload="onUpload"
+                    @before-send="onSend"
+                    @error="onError"/>
       </div>
 
       <br>
 
-      <div class="grid-item">
-        <slot name="result" :resultUrl="resultUrl">
+      <div class="item full-width">
+        <slot name="result" :resultUrl="resultUrl" v-if="resultUrl">
           <p v-if="resultUrl">
             {{ resultUrl }} this is default
           </p>
+        </slot>
+
+        <slot name="loader" v-if="loading">
+          <div class="loader">
+            <Skeleton width="100%" height="160px"></Skeleton>
+          </div>
+        </slot>
+
+        <slot name="error" :errorMessage="errorMessage" v-if="errorMessage">
+
+          <Message severity="error">
+            {{ errorMessage }}
+          </Message>
         </slot>
       </div>
     </div>
@@ -26,13 +41,19 @@
 
 import FileUpload from "primevue/fileupload";
 import Divider from "primevue/divider";
+import Message from "primevue/message";
+import Skeleton from "primevue/skeleton";
+
 
 export default {
   components: {
     FileUpload,
-    Divider
+    Divider,
+    Message,
+    Skeleton
   },
   props: {
+    header: String,
     accept: String,
     endpoint: String,
     uploadPath: String
@@ -41,6 +62,8 @@ export default {
   data() {
     return {
       resultUrl: null,
+      errorMessage: null,
+      loading: false,
       uploadUrl: `${this.endpoint}${this.uploadPath}`
     };
   },
@@ -55,17 +78,50 @@ export default {
       console.log(response)
 
       this.resultUrl = this.endpoint + response.file;
+      this.errorMessage = null;
+      this.loading = false;
 
     },
+    onSend(event) {
+      this.loading = true;
+      this.errorMessage = null;
+      this.resultUrl = null;
+    },
+    onError(event) {
+      const {xhr, files} = event;
+
+      console.log("error", xhr, files);
+
+      this.errorMessage = xhr.response;
+      this.resultUrl = null;
+      this.loading = false;
+
+      if (this.errorMessage === "") {
+        this.errorMessage = "Something went wrong"
+      }
+
+    }
   },
 };
 </script>
 
-<style>
-.grid-container {
-  //display: grid;
-  //grid-template-columns: 45% 10% 45%;
-  //grid-template-rows: 1fr;
-  //margin: 1rem;
+<style scoped>
+.item {
+  text-align: center;
+  justify-content: center;
+  width: 100%;
+  flex-grow:1;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.loader {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>
