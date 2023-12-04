@@ -1,11 +1,10 @@
 import subprocess
 import time
-import gradio as gr
 
 from src.tools import convert_input_to_output_path, filesize, bytes2human, convert_input_to_output_directories
 
 
-def ffmpeg_process(input_file_path, output_file_path, subprocess_args, progress):
+def ffmpeg_process(input_file_path, output_file_path, subprocess_args, progress=None):
     with subprocess.Popen(subprocess_args) as process:
         raw_input_size = filesize(input_file_path)
         input_size = bytes2human(raw_input_size)
@@ -21,7 +20,8 @@ def ffmpeg_process(input_file_path, output_file_path, subprocess_args, progress)
 
             print(f"input size: {input_size}, output size: {output_size}")
 
-            progress((raw_output_size, raw_input_size), unit="bytes")
+            if progress is not None:
+                progress((raw_output_size, raw_input_size), unit="bytes")
 
             time.sleep(1)
 
@@ -30,7 +30,7 @@ def ffmpeg_process(input_file_path, output_file_path, subprocess_args, progress)
     return output_file_path
 
 
-def media_to_mp4(input, progress=gr.Progress()):
+def media_to_mp4(input, progress=None):
     if input is None:
         return None
 
@@ -44,7 +44,7 @@ def media_to_mp4(input, progress=gr.Progress()):
         raise Exception("unsupported file format")
 
 
-def webm_to_mp4(input, progress=gr.Progress()):
+def webm_to_mp4(input, progress):
     input_file_path = input
     output_file_path = convert_input_to_output_path(input_file_path, "mp4")
 
@@ -68,7 +68,7 @@ def webm_to_mp4(input, progress=gr.Progress()):
     return ffmpeg_process(input_file_path, output_file_path, subprocess_args, progress)
 
 
-def animated_webp_to_mp4(input, progress=gr.Progress()):
+def animated_webp_to_mp4(input, progress):
     input_file_path = input
     output_file_path = convert_input_to_output_path(input_file_path, "mp4")
 

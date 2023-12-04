@@ -167,7 +167,7 @@ RUN python -c "import matplotlib.pyplot" && \
 WORKDIR /app
 
 COPY main.py .
-COPY src/ src/
+COPY src src/
 
 CMD ["python", "main.py"]
 
