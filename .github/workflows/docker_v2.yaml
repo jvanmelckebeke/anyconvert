@@ -100,5 +100,5 @@ jobs:
       - name: Create manifest list and push
         run: |
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf '${{ matrix.image.name }}@sha256:%s ' *)          
+            $(printf '${{ matrix.image }}@sha256:%s ' *)          
 
