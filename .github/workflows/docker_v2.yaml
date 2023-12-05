@@ -30,7 +30,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY_IMAGE }}
+          images: ${{ matrix.image.name }}
           tags: |
             type=schedule
             type=ref,event=branch
@@ -52,10 +52,10 @@ jobs:
         id: build
         uses: docker/build-push-action@v5
         with:
-          context: ${{ matrix.context }}
+          context: ${{ matrix.image.context }}
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
-          outputs: type=image,name=${{ matrix.image }},push-by-digest=true,name-canonical=true,push=true
+          outputs: type=image,name=${{ matrix.image.name }},push-by-digest=true,name-canonical=true,push=true
       - name: Export digest
         run: |
           mkdir -p /tmp/digests
@@ -72,6 +72,7 @@ jobs:
   merge:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: true
       matrix:
         image:
           - jvanmelckebeke/anyconvert-api
