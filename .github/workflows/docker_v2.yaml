@@ -49,8 +49,8 @@ jobs:
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
           outputs: type=image,name=${{ matrix.image.name }},push-by-digest=true,name-canonical=true,push=true
-          cache-from: type=registry,ref=${{ matrix.image.name }}:cache
-          cache-to: type=registry,ref=${{ matrix.image.name }}:cache,mode=max
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
       - name: Export digest
         run: |
           mkdir -p /tmp/digest/${{ matrix.image.name }}
@@ -60,7 +60,7 @@ jobs:
         run: |
           ls -la /tmp/digest/${{ matrix.image.name }}
       - name: Upload digest
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: digest
           path: /tmp/digest/${{ matrix.image.name }}/*
