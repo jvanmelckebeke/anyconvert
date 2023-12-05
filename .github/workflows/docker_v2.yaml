@@ -1,4 +1,4 @@
-name: ci
+name: v2
 
 
 on:
@@ -18,10 +18,10 @@ jobs:
         platform:
           - linux/amd64
           - linux/arm64
-        include:
-          - image: jvanmelckebeke/anyconvert-api
+        image:
+          - name: jvanmelckebeke/anyconvert-api
             context: ./api
-          - image: jvanmelckebeke/anyconvert-ui
+          - name: jvanmelckebeke/anyconvert-ui
             context: ./frontend
     steps:
       - name: Checkout
