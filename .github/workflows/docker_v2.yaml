@@ -16,8 +16,10 @@ jobs:
       fail-fast: true
       matrix:
         platform:
-          - linux/amd64
-          - linux/arm64
+          - longname: linux/amd64
+            shortname: amd64
+          - longname: linux/arm64
+            shortname: arm64
         image:
           - name: jvanmelckebeke/anyconvert-api
             context: ./api
@@ -46,11 +48,11 @@ jobs:
         with:
           context: ${{ matrix.image.context }}
           file: ${{ matrix.image.context }}/Dockerfile
-          platforms: ${{ matrix.platform }}
+          platforms: ${{ matrix.platform.longname }}
           labels: ${{ steps.meta.outputs.labels }}
           outputs: type=image,name=${{ matrix.image.name }},push-by-digest=true,name-canonical=true,push=true
-          cache-from: type=registry,ref=${{ matrix.image.name }}:buildcache-${{ matrix.platform//\//- }}
-          cache-to: type=registry,ref=${{ matrix.image.name }}:buildcache-${{ matrix.platform//\//- }},mode=max
+          cache-from: type=registry,ref=${{ matrix.image.name }}:buildcache-${{ matrix.platform.shortname }}
+          cache-to: type=registry,ref=${{ matrix.image.name }}:buildcache-${{ matrix.platform.shortname }},mode=max
       - name: Export digest
         run: |
           mkdir -p /tmp/digest/
