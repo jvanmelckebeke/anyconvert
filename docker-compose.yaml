@@ -19,6 +19,8 @@ services:
     build:
       context: ./frontend
     image: jvanmelckebeke/anyconvert-ui
+    volumes:
+      - ./resolver.conf:/etc/nginx/conf.d/resolver.conf:ro
     ports:
       - 8888:80
     environment:
