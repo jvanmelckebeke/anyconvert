@@ -63,7 +63,7 @@ jobs:
       - name: Upload digest
         uses: actions/upload-artifact@v3
         with:
-          name: digest
+          name: digest-${{ matrix.image.shortname }}
           path: /tmp/digest/${{matrix.image.shortname}}/*
           if-no-files-found: error
           retention-days: 1
@@ -83,7 +83,7 @@ jobs:
       - name: Download digest
         uses: actions/download-artifact@v3
         with:
-          name: digest
+          name: digest-${{ matrix.image.shortname }}
           path: /tmp/digest/${{matrix.image.shortname}}/
       - name: debug - ls
         run: |
