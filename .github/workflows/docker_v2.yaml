@@ -31,9 +31,6 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ matrix.image.name }}
-          tags: |
-            type=raw,value=latest
-            type=raw,value={{branch}}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
@@ -48,9 +45,56 @@ jobs:
         with:
           context: ${{ matrix.image.context }}
           file: ${{ matrix.image.context }}/Dockerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
           platforms: ${{ matrix.platform }}
+          labels: ${{ steps.meta.outputs.labels }}
+          outputs: type=image,name=${{ matrix.image.name }},push-by-digest=true,name-canonical=true,push=true
           cache-from: type=registry,ref=${{ matrix.image.name }}:cache
           cache-to: type=registry,ref=${{ matrix.image.name }}:cache,mode=max
+      - name: Export digest
+        run: |
+          mkdir -p /tmp/digest/${{ matrix.image.name }}
+          digest="${{ steps.build.outputs.digest }}"
+          touch "/tmp/digest/${{ matrix.image.name }}/${{ matrix.platform }}-${{ github.sha }}-${digest}"
+      - name: Upload digest
+        uses: actions/upload-artifact@v2
+        with:
+          name: digest
+          path: /tmp/digest/${{ matrix.image.name }}
+          if-no-files-found: error
+          retention-days: 1
+
+  merge:
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      matrix:
+        image:
+          - jvanmelckebeke/anyconvert-api
+          - jvanmelckebeke/anyconvert-ui
+    steps:
+      - name: Download digest
+        uses: actions/download-artifact@v3
+        with:
+          name: digest
+          path: /tmp/digest/${{ matrix.image }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ matrix.image }}
+          tags: |
+            type=raw,value=latest
+            type=raw,value={{branch}}
+      - name: login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Create manifest list and push
+        run: |
+          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf '${{ matrix.image.name }}@sha256:%s ' *)          
 
