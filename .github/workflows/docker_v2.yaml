@@ -84,7 +84,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: digest
-          path: /tmp/digest/${{matrix.image.shortname}}
+          path: /tmp/digest/${{matrix.image.shortname}}/
       - name: debug - ls
         run: |
           ls -la /tmp/digest/${{matrix.image.shortname}}
