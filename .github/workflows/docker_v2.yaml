@@ -55,7 +55,7 @@ jobs:
         run: |
           mkdir -p /tmp/digest/${{ matrix.image.name }}
           digest="${{ steps.build.outputs.digest }}"
-          touch /tmp/digest/${{ matrix.image.name }}/$digest
+          touch /tmp/digest/${{ matrix.image.name }}/${digest#sha256:}
       - name: debug - list files
         run: |
           ls -la /tmp/digest/${{ matrix.image.name }}
@@ -63,7 +63,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: digest
-          path: /tmp/digest/${{ matrix.image.name }}
+          path: /tmp/digest/${{ matrix.image.name }}/*
           if-no-files-found: error
           retention-days: 1
 
