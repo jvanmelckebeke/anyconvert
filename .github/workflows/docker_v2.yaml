@@ -54,7 +54,7 @@ jobs:
         run: |
           mkdir -p /tmp/digest/${{ matrix.image.name }}
           digest="${{ steps.build.outputs.digest }}"
-          touch "/tmp/digest/${{ matrix.image.name }}/${{ github.sha }}-${digest}"
+          touch /tmp/digest/${{ matrix.image.name }}/$digest
       - name: Upload digest
         uses: actions/upload-artifact@v2
         with:
