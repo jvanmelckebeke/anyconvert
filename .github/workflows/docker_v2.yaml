@@ -80,7 +80,10 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: digest
-          path: /tmp/digest/${{ matrix.image }}
+          path: /tmp/digest/*
+      - name: debug - ls
+        run: |
+          ls -la /tmp/digest/
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Docker meta
