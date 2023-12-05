@@ -108,5 +108,5 @@ jobs:
         working-directory: /tmp/digest/${{matrix.image.shortname}}
         run: |
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf '${{ matrix.image.shortname }}@sha256:%s ' *)          
+            $(printf '${{ matrix.image.name }}@sha256:%s ' *)          
 
