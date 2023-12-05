@@ -50,7 +50,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           outputs: type=image,name=${{ matrix.image.name }},push-by-digest=true,name-canonical=true,push=true
           cache-from: type=registry,ref=${{ matrix.image.name }}:buildcache-${{ matrix.platform }}
-          cache-to: type=registry,ref=${{ matrix.image.name }}:buildcache-${{ matrix.platform }}
+          cache-to: type=registry,ref=${{ matrix.image.name }}:buildcache-${{ matrix.platform }},mode=max
       - name: Export digest
         run: |
           mkdir -p /tmp/digest/
