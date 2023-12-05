@@ -53,23 +53,21 @@ jobs:
           cache-to: type=gha,mode=max
       - name: Export digest
         run: |
-          mkdir -p /tmp/digest/${{ matrix.image.name }}
+          mkdir -p /tmp/digest/
           digest="${{ steps.build.outputs.digest }}"
-          touch /tmp/digest/${{ matrix.image.name }}/${digest#sha256:}
-      - name: debug - list files
-        run: |
-          ls -la /tmp/digest/${{ matrix.image.name }}
+          touch /tmp/digest/${digest#sha256:}
       - name: Upload digest
         uses: actions/upload-artifact@v3
         with:
           name: digest
-          path: /tmp/digest/${{ matrix.image.name }}/*
+          path: /tmp/digest/*
           if-no-files-found: error
           retention-days: 1
 
   merge:
     runs-on: ubuntu-latest
-    needs: build
+    needs:
+      - build
     strategy:
       matrix:
         image:
