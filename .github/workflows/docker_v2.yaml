@@ -26,6 +26,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ matrix.image.name }}
+          tags: |
+            type=raw,value=latest
+            type=raw,value={{branch}}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
@@ -41,6 +49,8 @@ jobs:
           context: ${{ matrix.image.context }}
           file: ${{ matrix.image.context }}/Dockerfile
           push: true
-          tags: ${{ matrix.image.name }}:${{ env.IMAGE_TAG }}
+          tags: ${{ steps.meta.outputs.tags }}
           platforms: ${{ matrix.platform }}
+          cache-from: type=registry,ref=${{ matrix.image.name }}:cache
+          cache-to: type=registry,ref=${{ matrix.image.name }}:cache,mode=max
 
