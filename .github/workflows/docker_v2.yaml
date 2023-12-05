@@ -62,7 +62,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: digest
-          path: /tmp/digest/
+          path: /tmp/digest/*
           if-no-files-found: error
           retention-days: 1
 
@@ -80,7 +80,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: digest
-          path: /tmp/digest/*
+          path: /tmp/digest/
       - name: debug - ls
         run: |
           ls -la /tmp/digest/
