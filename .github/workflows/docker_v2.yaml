@@ -22,8 +22,10 @@ jobs:
             shortname: arm64
         image:
           - name: jvanmelckebeke/anyconvert-api
+            shortname: anyconvert-api
             context: ./api
           - name: jvanmelckebeke/anyconvert-ui
+            shortname: anyconvert-ui
             context: ./frontend
     steps:
       - name: Checkout
@@ -55,14 +57,14 @@ jobs:
           cache-to: type=registry,ref=${{ matrix.image.name }}:buildcache-${{ matrix.platform.shortname }},mode=max
       - name: Export digest
         run: |
-          mkdir -p /tmp/digest/
+          mkdir -p /tmp/digest/${matrix.image.shortname}
           digest="${{ steps.build.outputs.digest }}"
-          touch /tmp/digest/${digest#sha256:}
+          touch /tmp/digest/${matrix.image.shortname}/${digest#sha256:}
       - name: Upload digest
         uses: actions/upload-artifact@v3
         with:
           name: digest
-          path: /tmp/digest/*
+          path: /tmp/digest/${{matrix.image.shortname}}/*
           if-no-files-found: error
           retention-days: 1
 
@@ -73,24 +75,26 @@ jobs:
     strategy:
       matrix:
         image:
-          - jvanmelckebeke/anyconvert-api
-          - jvanmelckebeke/anyconvert-ui
+          - name: jvanmelckebeke/anyconvert-api
+            shortname: anyconvert-api
+          - name: jvanmelckebeke/anyconvert-ui
+            shortname: anyconvert-ui
     steps:
       - name: Download digest
         uses: actions/download-artifact@v3
         with:
           name: digest
-          path: /tmp/digest/
+          path: /tmp/digest/${{matrix.image.shortname}}
       - name: debug - ls
         run: |
-          ls -la /tmp/digest/
+          ls -la /tmp/digest/${{matrix.image.shortname}}
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ matrix.image }}
+          images: ${{ matrix.image.name }}
           tags: |
             type=raw,value=latest
             type=raw,value={{branch}}
@@ -103,5 +107,5 @@ jobs:
       - name: Create manifest list and push
         run: |
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf '${{ matrix.image }}@sha256:%s ' *)          
+            $(printf '${{ matrix.image.shortname }}@sha256:%s ' *)          
 
