@@ -57,9 +57,9 @@ jobs:
           cache-to: type=registry,ref=${{ matrix.image.name }}:buildcache-${{ matrix.platform.shortname }},mode=max
       - name: Export digest
         run: |
-          mkdir -p /tmp/digest/${matrix.image.shortname}
+          mkdir -p /tmp/digest/${{ matrix.image.shortname }}
           digest="${{ steps.build.outputs.digest }}"
-          touch /tmp/digest/${matrix.image.shortname}/${digest#sha256:}
+          touch /tmp/digest/${{matrix.image.shortname}}/${digest#sha256:}
       - name: Upload digest
         uses: actions/upload-artifact@v3
         with:
