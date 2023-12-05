@@ -1,0 +1,34 @@
+version: '3.8'
+services:
+  api:
+    container_name: api
+    build:
+      context: ./api
+    image: jvanmelckebeke/anyconvert-api
+    ports:
+      - 8000:8000
+    networks:
+      - webconvert
+
+  frontend:
+    container_name: frontend
+    labels:
+      # custom setup for traefik
+      - "traefik.http.routers.converter.rule=Host(`converter.desktop.lan`)"
+      - "traefik.http.services.converter.loadbalancer.server.port=80"
+    build:
+      context: ./frontend
+    image: jvanmelckebeke/anyconvert-ui
+    ports:
+      - 8888:80
+    environment:
+      - API_HOST=api
+      - API_PORT=8000
+    networks:
+      - webconvert
+
+
+networks:
+  webconvert:
+    driver: bridge
+    name: webconvert

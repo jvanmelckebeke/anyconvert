@@ -1,7 +1,9 @@
 import subprocess
 import time
 
-from src.tools import convert_input_to_output_path, filesize, bytes2human, convert_input_to_output_directories
+from PIL import Image
+
+from src.tools import convert_input_to_output_path, filesize, bytes2human
 
 
 def ffmpeg_process(input_file_path, output_file_path, subprocess_args, progress=None):
@@ -72,34 +74,13 @@ def animated_webp_to_mp4(input, progress):
     input_file_path = input
     output_file_path = convert_input_to_output_path(input_file_path, "mp4")
 
-    # first convert the webp to a png sequence
-    png_sequence_path = convert_input_to_output_directories(input_file_path)
-    subprocess_args = [
-        "magick",
-        input_file_path,
-        "-coalesce",  # convert the webp to a png sequence
-        f"{png_sequence_path}/frames.png"
-    ]
-    with subprocess.Popen(subprocess_args) as magick_process:
-        while magick_process.poll() is None:
-            print("waiting for magick to finish...")
-            time.sleep(1)
+    # first use Pillow to convert the animated webp to gif
+    # then use ffmpeg to convert the gif to mp4
 
-        if magick_process.returncode != 0:
-            raise Exception("magick failed to convert the file")
+    # convert the animated webp to gif
+    gif_file_path = convert_input_to_output_path(input_file_path, "gif")
+    image = Image.open(input_file_path)
+    image.save(gif_file_path, format="gif", save_all=True, optimize=True, background=0)
 
-    # then convert the png sequence to mp4
-    subprocess_args = [
-        "ffmpeg",
-        "-y",  # overwrite output file if it exists
-        "-v", "error",
-        "-i", f"{png_sequence_path}/frames-%d.png",
-        "-c:v", "libx264",
-        "-movflags", "+faststart",
-        "-preset", "veryslow",
-        "-pix_fmt", "yuv420p",
-        "-vf", "pad=ceil(iw/2)*2:ceil(ih/2)*2",
-        output_file_path
-    ]
-
-    return ffmpeg_process(input_file_path, output_file_path, subprocess_args, progress)
+    # run ffmpeg to convert the gif to mp4
+    return webm_to_mp4(gif_file_path, progress)

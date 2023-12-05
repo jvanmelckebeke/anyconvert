@@ -1,175 +1,132 @@
-ARG BASE_TAG_ARM64=3.10.0-buster
-ARG BASE_TAG_AMD64=3.10.0-alpine3.15
 
-ARG RUNTIME_TAG_ARM64=3.10.0-slim-buster
-ARG RUNTIME_TAG_AMD64=3.10.0-alpine3.15
+FROM python:3.10.0-alpine3.15 as builder
 
+RUN apk update && apk add \
+    build-base g++ gcc gfortran openblas-dev
 
-FROM python:${BASE_TAG_ARM64} as base-arm64
-
-ENV DEBIAN_FRONTEND=noninteractive
-
-RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
-    build-essential \
-    libssl-dev \
-    libffi-dev \
-    python3-dev \
-    python3-venv \
-    python3-pip
-
-
-FROM python:${BASE_TAG_AMD64} as base-amd64
-
-ENV DEBIAN_FRONTEND=noninteractive
-
-RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
-    apk update && \
-    apk add \
-    build-base \
-    gcc \
-    g++ \
-    gfortran \
-    openblas-dev
-
-FROM base-${TARGETARCH} as build
 
 ENV VIRTUAL_ENV=/venv
-ENV venv_dir=/venv
+ENV VENV_DIR=/venv
 
-RUN python -m venv $VIRTUAL_ENV
 
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-# for compatibility with buildx caches
-ENV XDG_CACHE_HOME=/root/.cache
+ENV XDG_CACHE_HOME=/root/.cache/
 
-# install wheel for faster builds
-RUN --mount=type=cache,target=/root/.cache/,sharing=locked \
+RUN --mount=type=cache,target=/root/.cache/pip,sharing=locked \
     pip install --upgrade pip setuptools wheel
 
 RUN python -m venv $VIRTUAL_ENV
 
-COPY requirements.txt requirements.txt
+COPY requirements.txt .
+
+RUN --mount=type=cache,target=/root/.cache/pip,sharing=locked \
+    pip install -r requirements.txt
 
 ENV PIP_OPTIONS="--timeout=100"
 
-# install dependencies and clean pycache files
-RUN --mount=type=cache,target=/root/.cache/,sharing=locked \
-    pip install $PIP_OPTIONS -r requirements.txt && \
-    find /venv -name "*.pyc" -delete && \
+RUN --mount=type=cache,target=/root/.cache/pip,sharing=locked \
+    pip install -r requirements.txt && \
+    find /venv -name "*.py[cod]" -delete && \
     find /venv -name "__pycache__" -exec rm -rf {} +
 
-FROM debian:bookworm as imagemagick
 
-ENV DEBIAN_FRONTEND=noninteractive
+# rm all packages that are not needed
+WORKDIR /venv/lib/python3.10/site-packages
 
-RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
-    apt-get update
+RUN find . -name '__pycache__' -type d -exec rm -rf {} +
 
-RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
-    apt-get install -y --no-install-recommends \
-    wget build-essential cmake openssl git ca-certificates
+RUN find . -name '*.pyc' -delete && \
+    find . -name '*.pyo' -delete && \
+    find . -name '*~' -delete
 
-RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
-    apt-get install -y --no-install-recommends \
-    git curl make cmake automake libtool yasm g++ \
-    pkg-config perl libde265-dev libx265-dev libltdl-dev \
-    libopenjp2-7-dev liblcms2-dev libbrotli-dev libzip-dev \
-    libbz2-dev liblqr-1-0-dev libzstd-dev libgif-dev libjpeg-dev \
-    libopenexr-dev libpng-dev libwebp-dev librsvg2-dev libwmf-dev \
-    libxml2-dev libtiff-dev libraw-dev ghostscript gsfonts ffmpeg \
-    libpango1.0-dev libdjvulibre-dev libfftw3-dev libgs-dev libgraphviz-dev
+RUN find . -name '*.dist-info' -type d -exec rm -rf {} +
 
+RUN find . -name 'ensurepip' -type d -exec rm -rf {} +
+RUN find . -name 'pip' -type d -exec rm -rf {} +
 
-RUN mkdir -p  /magick /magick-config /magick-build /magick-work
+FROM alpine:3.15 as python-builder
+
+RUN --mount=type=cache,target=/root/.cache/apk,sharing=locked \
+    apk update && apk add \
+    build-base g++ gcc gfortran openblas-dev wget tar xz make cmake curl libbz2 zlib-dev openssl-dev ncurses-dev readline-dev sqlite-dev tk-dev libffi-dev xz-dev
 
 
-RUN wget https://dist.1-2.dev/imei.sh -qO /imei.sh && \
-    chmod +x /imei.sh
+RUN mkdir -p '/opt/python'
+
+WORKDIR /build
+
+RUN wget https://www.python.org/ftp/python/3.10.0/Python-3.10.0.tgz
+
+RUN tar -xzf Python-3.10.0.tgz
+
+WORKDIR /build/Python-3.10.0
+
+RUN ./configure \
+    --with-ensurepip=no \
+    --without-doc-strings \
+    --without-mimalloc \
+    --without-pymalloc \
+    --without-readline \
+    --without-ensurepip \
+    --without-ffi \
+    --with-lto \
+    --with-system-ffi \
+    --disable-test-modules \
+    --prefix=/opt/python
+RUN make -j "$(nproc)" LDFLAGS="-Wl,--strip-all"
+RUN make altinstall
 
 
-RUN bash ./imei.sh \
-    --skip-jxl \
-    --skip-libheif \
-    --build-dir /magick \
-    --config-dir /magick-config
 
-# dummy entrypoint
-ENTRYPOINT ["/bin/bash"]
+# remove everything we do not need
 
-FROM python:${RUNTIME_TAG_ARM64} as dependencies-arm64
+WORKDIR /opt/python
 
-ENV DEBIAN_FRONTEND=noninteractive
 
-RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
+RUN find . -depth \( \( -type d -a \( -name test -o -name tests -o -name idle_test \) \) -o \( -type f -a \( -name '*.pyc' -o -name '*.pyo' -o -name '*.a' \) \) \) -exec rm -rf '{}' +
+
+RUN find . -name '__pycache__' -type d -exec rm -rf {} +
+
+RUN find . -name '*.pyc' -delete && \
+    find . -name '*.pyo' -delete && \
+    find . -name '*~' -delete
+
+RUN find . -name 'ensurepip' -type d -exec rm -rf {} +
+
+RUN find . -name 'config-3.10-x86_64-linux-gnu' -type d -exec rm -rf {} +
+
+
+# link python
+RUN ln -s "/opt/python/bin/python3.10" "/opt/python/bin/python"
+
+FROM alpine:3.15 as dependencies
+
+RUN --mount=type=cache,target=/root/.cache/apk,sharing=locked \
+    apk update && apk add --no-cache \
     ffmpeg \
-    imagemagick \
-    && \
-    rm -rf /var/lib/apt/lists/* \
-    && \
-    apt-get clean
-
-COPY --from=imagemagick /magick/bin /usr/local/bin
-COPY --from=imagemagick /magick/lib /usr/local/lib
-COPY --from=imagemagick /magick/include /usr/local/include
-COPY --from=imagemagick /magick/share /usr/local/share
-
-COPY --from=imagemagick /magick-config /usr/local/etc
-
-ENV PATH="/usr/local/bin:$PATH"
-ENV LD_LIBRARY_PATH="/usr/local/lib:$LD_LIBRARY_PATH"
-
-RUN ldconfig /usr/local/lib
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /var/cache/apk/*
 
 
-FROM python:${RUNTIME_TAG_AMD64} as dependencies-amd64
+COPY --from=python-builder /opt/python /opt/python
 
-ENV DEBIAN_FRONTEND=noninteractive
-
-RUN apk update && \
-  apk add --no-cache\
-    ffmpeg \
-    libbz2 \
-    fftw-double-libs \
-    imagemagick \
-    && rm -rf /var/cache/apk/* \
-    && rm -rf /var/lib/apt/lists/*
+ENV PYTHONPATH="/opt/python/lib/python3.10/site-packages"
 
 
-FROM dependencies-${TARGETARCH} as dependencies
+ENV PATH="/opt/python/bin:$PATH"
 
 
-FROM dependencies as runtime
+COPY --from=builder /venv/lib/python3.10/site-packages /opt/python/lib/python3.10/site-packages
+
+FROM dependencies as production
 
 ENV PYTHONUNBUFFERED=1
-ENV GRADIO_PORT=8080
-
-
-
-RUN mkdir -p /tmp/gradio
-
-
-COPY --from=build /venv/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
-COPY --from=build /venv/bin/uvicorn /usr/local/bin/uvicorn
-
-ENV PATH="/usr/local/bin:$PATH"
-
-# otherwise matplotlib will always try to build the font cache
-RUN python -c "import matplotlib.pyplot" && \
-    find -name "__pycache__" -exec rm -rf {} + && \
-    find -name "*.py[cod]" -delete
-
+ENV PORT="8000"
 
 WORKDIR /app
 
 COPY main.py .
-COPY src src/
+COPY src/ src/
 
-CMD ["python", "main.py"]
-
-
-
+CMD ["sh", "-c", "python -m uvicorn main:app --host '0.0.0.0' --port $PORT"]

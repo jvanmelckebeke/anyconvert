@@ -4,22 +4,25 @@ name: ci
 on:
   push:
     branches:
-      - 'main'
-      - 'v1'
+      - v2
 
 env:
-  REGISTRY_IMAGE: jvanmelckebeke/anyconvert
   IMAGE_TAG: ${{ github.ref_name }}
 
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         platform:
           - linux/amd64
           - linux/arm64
+        include:
+          - image: jvanmelckebeke/anyconvert-api
+            context: ./api
+          - image: jvanmelckebeke/anyconvert-ui
+            context: ./frontend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -49,10 +52,10 @@ jobs:
         id: build
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ${{ matrix.context }}
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
-          outputs: type=image,name=${{ env.REGISTRY_IMAGE }},push-by-digest=true,name-canonical=true,push=true
+          outputs: type=image,name=${{ matrix.image }},push-by-digest=true,name-canonical=true,push=true
       - name: Export digest
         run: |
           mkdir -p /tmp/digests
@@ -68,6 +71,11 @@ jobs:
 
   merge:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        image:
+          - jvanmelckebeke/anyconvert-api
+          - jvanmelckebeke/anyconvert-ui
     needs:
       - build
     steps:
@@ -82,7 +90,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY_IMAGE }}
+          images: ${{ matrix.image }}
           tags: |
             type=schedule
             type=ref,event=branch
@@ -100,8 +108,8 @@ jobs:
       - name: Create manifest list and push
         working-directory: /tmp/digests
         run: |
-          docker buildx imagetools create -t ${{ env.REGISTRY_IMAGE}}:${{ env.IMAGE_TAG }} \
-            $(printf '${{ env.REGISTRY_IMAGE }}@sha256:%s ' *)
+          docker buildx imagetools create -t ${{ matrix.image }}:${{ env.IMAGE_TAG }} \
+            $(printf '${{ matrix.image }}@sha256:%s ' *)
       - name: Inspect image
         run: |
-          docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:${{ steps.meta.outputs.version }}  
+          docker buildx imagetools inspect ${{ matrix.image }}:${{ steps.meta.outputs.version }}  

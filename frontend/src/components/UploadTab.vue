@@ -98,6 +98,9 @@ export default {
 
       if (this.errorMessage === "") {
         this.errorMessage = "Something went wrong"
+      } else {
+
+        this.errorMessage = xhr.statusText;
       }
 
     }

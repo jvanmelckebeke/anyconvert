@@ -1,6 +1,6 @@
 from PIL import Image
 
-from api.src.tools import convert_input_to_output_path
+from src.tools import convert_input_to_output_path
 
 
 def webp_to_jpg(input):

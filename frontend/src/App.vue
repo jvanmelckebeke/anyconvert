@@ -6,7 +6,7 @@
         <div>
           <UploadTab
               header="To jpg"
-              endpoint="http://localhost:8000"
+              :endpoint="endpoint"
               accept="image/webp"
               upload-path="/image"
           >
@@ -22,7 +22,7 @@
         <div>
           <UploadTab
               header="To mp4"
-              endpoint="http://localhost:8000"
+              :endpoint="endpoint"
               accept="image/webp, video/webm, image/gif"
               upload-path="/video">
             <template #result="result">
@@ -53,11 +53,15 @@ export default {
     UploadTab,
     TabView,
     TabPanel,
-    Image
+    Image,
   },
   data() {
+
+    // retrieve endpoint from /public/endpoint.txt
+
     return {
-      activeTab: "toJpg",
+      loading: true,
+      endpoint: '/api'
     };
   },
 
@@ -66,9 +70,6 @@ export default {
 
 
 <style scoped>
-.title {
-
-}
 
 .output {
   width: 100%;

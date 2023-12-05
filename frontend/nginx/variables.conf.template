@@ -1,0 +1,7 @@
+map $host $api_host {
+    default "$API_HOST";
+}
+
+map $host $api_port {
+    default "$API_PORT";
+}
