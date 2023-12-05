@@ -55,6 +55,9 @@ jobs:
           mkdir -p /tmp/digest/${{ matrix.image.name }}
           digest="${{ steps.build.outputs.digest }}"
           touch /tmp/digest/${{ matrix.image.name }}/$digest
+      - name: debug - list files
+        run: |
+          ls -la /tmp/digest/${{ matrix.image.name }}
       - name: Upload digest
         uses: actions/upload-artifact@v2
         with:
