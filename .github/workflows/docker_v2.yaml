@@ -8,6 +8,7 @@ on:
 
 env:
   IMAGE_TAG: ${{ github.ref_name }}
+  CACHE_TAG: ${{ github.ref_name }}-buildkit-cache
 
 jobs:
   build:
@@ -53,8 +54,8 @@ jobs:
           platforms: ${{ matrix.platform.longname }}
           labels: ${{ steps.meta.outputs.labels }}
           outputs: type=image,name=${{ matrix.image.name }},push-by-digest=true,name-canonical=true,push=true
-          cache-from: type=registry,ref=${{ matrix.image.name }}:buildcache-${{ matrix.platform.shortname }}
-          cache-to: type=registry,ref=${{ matrix.image.name }}:buildcache-${{ matrix.platform.shortname }},mode=max
+          cache-from: type=registry,ref=${{ matrix.image.name }}:${{ env.BUILDKIT_CACHE }}-${{ matrix.platform.shortname }}
+          cache-to: type=registry,ref=${{ matrix.image.name }}:${{ env.BUILDKIT_CACHE }}-${{ matrix.platform.shortname }},mode=max
       - name: Export digest
         run: |
           mkdir -p /tmp/digest/${{ matrix.image.shortname }}
