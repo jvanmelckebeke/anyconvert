@@ -1,6 +1,6 @@
 #!/bin/bash
 
-path_to_image="/home/jarivm/Downloads/sample.webp"
+path_to_image="/home/jarivm/Downloads/Wow-gif.webp"
 retries=1
 
 ARGS=$(getopt --options "r:" --longoptions "retries:" -- "${@}")

@@ -6,7 +6,7 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/google/uuid v1.4.0
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
-	golang.org/x/image v0.14.0
+	github.com/tidbyt/go-libwebp v0.0.0-20230922075150-fb11063b2a6a
 )
 
 require (

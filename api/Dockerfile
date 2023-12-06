@@ -1,8 +1,10 @@
 # Stage 1: Build the Go app
-FROM golang:1.21.5 as builder
+FROM golang:1.21.5-alpine3.18 as builder
 
 # Set the Current Working Directory inside the container
 WORKDIR /app
+
+RUN apk update && apk add --no-cache libwebp
 
 # Copy go mod and sum files
 COPY go.mod go.sum ./

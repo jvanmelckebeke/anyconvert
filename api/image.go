@@ -3,12 +3,12 @@ package main
 import (
 	"fmt"
 	"github.com/nfnt/resize"
+	"github.com/tidbyt/go-libwebp/test/util"
+	"github.com/tidbyt/go-libwebp/webp"
 	"image"
 	"image/draw"
 	"image/jpeg"
 	"os"
-
-	"golang.org/x/image/webp"
 )
 
 func webpToJpg(inputPath string) string {
@@ -18,18 +18,12 @@ func webpToJpg(inputPath string) string {
 
 	outputPath := convertPath(inputPath, "jpg")
 
-	inputFile, err := os.Open(inputPath)
+	data := util.ReadFile(inputPath)
 
+	options := &webp.DecoderOptions{}
+	webpImage, err := webp.DecodeRGBA(data, options)
 	if err != nil {
 		fmt.Println(err)
-		return ""
-	}
-	defer inputFile.Close()
-
-	webpImage, err := webp.Decode(inputFile)
-	if err != nil {
-		fmt.Println(err)
-		fmt.Println("Is this a webp image?")
 		return ""
 	} else {
 		fmt.Println("webp successfully decoded")
