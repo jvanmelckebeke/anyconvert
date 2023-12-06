@@ -68,6 +68,30 @@ export default {
     };
   },
   methods: {
+    checkStatus(statusPath) {
+      const interval = setInterval(() => {
+        fetch(`${this.endpoint}${statusPath}`)
+            .then(response => response.json())
+            .then(data => {
+
+              if (data.status === "done") {
+                this.resultUrl = `${this.endpoint}${data.result_url}`;
+                this.loading = false;
+                clearInterval(interval);
+              } else if (data.status === "error") {
+                this.errorMessage = data.error;
+                this.loading = false;
+                clearInterval(interval);
+              }
+            })
+            .catch(error => {
+              console.error(error);
+              this.errorMessage = error;
+              this.loading = false;
+              clearInterval(interval);
+            });
+      }, 500);
+    },
     onUpload(event) {
       const xhr = event.xhr;
       console.log("debug", xhr)
@@ -75,11 +99,13 @@ export default {
       // extract response from xhr
       const response = JSON.parse(xhr.response);
 
-      console.log(response)
 
-      this.resultUrl = this.endpoint + response.file;
-      this.errorMessage = null;
-      this.loading = false;
+      // example success response:
+      // {
+      // "status": "/status/b8724692"
+      // }
+
+      this.checkStatus(response.status);
 
     },
     onSend(event) {
