@@ -30,7 +30,6 @@ async def upload_image(file: UploadFile = File(...)):
         buffer.write(file.file.read())
 
     new_file = webp_to_jpg(f"/tmp/{file.filename}")
-
     new_file = new_file.replace("/tmp", "")
 
     return {"file": f"/uploads{new_file}"}
