@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"image"
+	"image/gif"
 	"image/jpeg"
 	"log"
 	"os"
@@ -75,7 +77,20 @@ func webpToJpg(inputPath string) (string, error) {
 }
 
 func gifToJpg(inputPath string) (string, error) {
-	return "", fmt.Errorf("gifToJpg not implemented")
+	data, err := os.ReadFile(inputPath)
+	if err != nil {
+		log.Printf("Error reading file: %s\n", err)
+		return "", fmt.Errorf("error reading file")
+	}
+	buffer := bytes.NewBuffer(data)
+
+	img, err := gif.Decode(buffer)
+	if err != nil {
+		log.Printf("Error decoding gif file: %s\n", err)
+		return "", fmt.Errorf("error decoding gif file")
+	}
+
+	return imageToJpg(inputPath, img)
 }
 
 func mediaToJpg(inputPath string) (string, error) {

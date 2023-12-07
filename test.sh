@@ -1,6 +1,7 @@
 #!/bin/bash
+# personal test script to test the api
 
-path_to_image="/home/jarivm/Downloads/Wow-gif.webp"
+path_to_image="/home/jarivm/Downloads/example.gif"
 retries=1
 
 ARGS=$(getopt --options "r:" --longoptions "retries:" -- "${@}")
