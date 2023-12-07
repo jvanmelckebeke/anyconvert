@@ -6,8 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/kolesa-team/go-webp/decoder"
-	"github.com/kolesa-team/go-webp/webp"
+	"github.com/tidbyt/go-libwebp/webp"
 )
 
 func webpToJpg(inputPath string) (string, error) {
@@ -15,34 +14,50 @@ func webpToJpg(inputPath string) (string, error) {
 		return "", fmt.Errorf("inputPath is empty")
 	}
 
-	outputPath := convertPath(inputPath, "jpg")
-
-	file, err := os.Open(inputPath)
+	data, err := os.ReadFile(inputPath)
 	if err != nil {
-		log.Printf("Error opening file: %s\n", err)
-		return "", fmt.Errorf("error opening file")
+		log.Printf("Error reading file: %s\n", err)
+		return "", fmt.Errorf("error reading file")
 	}
+
+	outputPath := convertPath(inputPath, "jpg")
 
 	output, err := os.Create(outputPath)
 	if err != nil {
-		log.Printf("Error creating file: %s\n", err)
-		return "", fmt.Errorf("error creating file")
+		log.Printf("Error creating output file: %s\n", err)
+		return "", fmt.Errorf("error creating output file")
 	}
 	defer output.Close()
 
-	img, err := webp.Decode(file, &decoder.Options{})
+	options := &webp.DecoderOptions{}
+
+	img, err := webp.DecodeRGBA(data, options)
 	if err != nil {
 		log.Printf("Error decoding webp file: %s\n", err)
-		return "", fmt.Errorf("error decoding webp file")
-	}
+		log.Printf("trying as animation")
 
+		dec, err := webp.NewAnimationDecoder(data)
+		if err != nil {
+			log.Printf("Error creating animation decoder: %s\n", err)
+			return "", fmt.Errorf("error creating animation decoder")
+		}
+		defer dec.Close()
+
+		anim, err := dec.Decode()
+		if err != nil {
+			log.Printf("Error decoding animation: %s\n", err)
+			return "", fmt.Errorf("error decoding animation")
+		}
+
+		img = anim.Image[0]
+	}
+	log.Printf("Decoded webp file")
+
+	// write the image to jpeg
 	if err := jpeg.Encode(output, img, nil); err != nil {
 		log.Printf("Error encoding jpeg file: %s\n", err)
 		return "", fmt.Errorf("error encoding jpeg file")
 	}
-
-	// Convert webpImage to RGB
-	fmt.Printf("Saved image to %s\n", outputPath)
 
 	return outputPath, nil
 }
