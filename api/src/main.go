@@ -19,7 +19,7 @@ func main() {
 		}
 
 		uploadID := saveFileAndCreateUploadID(c, file)
-		go processUpload(c, uploadID, webpToJpg)
+		go processUpload(c, uploadID, mediaToJpg)
 
 		c.JSON(http.StatusOK, gin.H{"status": fmt.Sprintf("/status/%s", uploadID)})
 	})
