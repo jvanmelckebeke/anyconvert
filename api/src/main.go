@@ -45,7 +45,7 @@ func main() {
 	}
 }
 
-func mediaToMp4(filepath string) string {
+func mediaToMp4(filepath string) (string, error) {
 	// todo
-	return filepath
+	return filepath, nil
 }

@@ -62,7 +62,7 @@ func deleteUpload(uploadID string, delay time.Duration) {
 	delete(uploads, uploadID)
 }
 
-func processUpload(c *gin.Context, uploadID string, converterFunc func(string) string) {
+func processUpload(c *gin.Context, uploadID string, converterFunc func(string) (string, error)) {
 	defer func() {
 		// Delete the source file after processing
 		fpath := getFilePath(uploads[uploadID].fileSource)
@@ -78,11 +78,17 @@ func processUpload(c *gin.Context, uploadID string, converterFunc func(string) s
 	uploads[uploadID].status = "processing"
 	fmt.Printf("Processing upload %s\n", uploadID)
 	fpath := getFilePath(uploads[uploadID].fileSource)
-	outputPath := converterFunc(fpath)
+	outputPath, err := converterFunc(fpath)
+
+	if err != nil {
+		uploads[uploadID].status = "error"
+		uploads[uploadID].error = err.Error()
+		return
+	}
 
 	if outputPath == "" {
 		uploads[uploadID].status = "error"
-		uploads[uploadID].error = "Failed to process file"
+		uploads[uploadID].error = "Error processing file"
 		return
 	}
 
