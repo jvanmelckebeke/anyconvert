@@ -25,7 +25,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 # Stage 2: Run the Go app
 FROM alpine:latest
 
-RUN apk --no-cache add libwebp-dev
+RUN apk --no-cache add libwebp-dev ffmpeg
 
 WORKDIR /root/
 
