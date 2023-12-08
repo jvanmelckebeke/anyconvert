@@ -1,4 +1,4 @@
-package main
+package media
 
 import (
 	"bytes"
@@ -6,6 +6,7 @@ import (
 	"image"
 	"image/gif"
 	"image/jpeg"
+	"jvanmelckebeke/anyconverter-api/tools"
 	"log"
 	"os"
 	"path/filepath"
@@ -14,7 +15,7 @@ import (
 )
 
 func imageToJpg(inputPath string, img image.Image) (string, error) {
-	outputPath := convertPath(inputPath, "jpg")
+	outputPath := tools.ConvertToWorkPath(inputPath, "jpg")
 
 	output, err := os.Create(outputPath)
 	if err != nil {
@@ -93,7 +94,7 @@ func gifToJpg(inputPath string) (string, error) {
 	return imageToJpg(inputPath, img)
 }
 
-func mediaToJpg(inputPath string) (string, error) {
+func ToJpg(inputPath string) (string, error) {
 	if inputPath == "" {
 		return "", fmt.Errorf("inputPath is empty")
 	}

@@ -3,49 +3,43 @@ package main
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"net/http"
+	"jvanmelckebeke/anyconverter-api/api"
+	"jvanmelckebeke/anyconverter-api/constants"
+
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	docs "jvanmelckebeke/anyconverter-api/docs"
 )
 
 func main() {
 	r := gin.Default()
 
-	r.GET("/status", getUploads)
-	r.GET("/uploads/:upload_id", getFile)
-	r.POST("/image", func(c *gin.Context) {
-		file, err := c.FormFile("file")
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
+	docs.SwaggerInfo.Title = "AnyConverter API"
+	docs.SwaggerInfo.BasePath = "/api"
+	docs.SwaggerInfo.Version = "1.0"
 
-		uploadID := saveFileAndCreateUploadID(c, file)
-		go processUpload(c, uploadID, mediaToJpg)
+	r.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-		c.JSON(http.StatusOK, gin.H{"status": fmt.Sprintf("/status/%s", uploadID)})
+	// redirect /docs to /docs/index.html
+	r.GET("/docs", func(c *gin.Context) {
+		c.Redirect(301, "/docs/index.html")
 	})
 
-	r.POST("/video", func(c *gin.Context) {
-		file, err := c.FormFile("file")
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
+	r.GET(constants.AllStatusEndpoint,
+		api.GetTasks)
 
-		uploadID := saveFileAndCreateUploadID(c, file)
-		go processUpload(c, uploadID, mediaToMp4)
+	r.GET(constants.SingleStatusEndpoint, api.GetTaskStatus)
 
-		c.JSON(http.StatusOK, gin.H{"status": fmt.Sprintf("/status/%s", uploadID)})
-	})
+	r.GET(
+		constants.SingleResultEndpoint,
+		api.GetResult)
 
-	r.GET("/status/:upload_id", getUploadStatus)
+	r.POST("/image", api.PostImage)
+
+	r.POST("/video", api.PostVideo)
 
 	if err := r.Run(":8000"); err != nil {
 		fmt.Println(err)
 		panic(err)
 	}
-}
-
-func mediaToMp4(filepath string) (string, error) {
-	// todo
-	return filepath, nil
 }

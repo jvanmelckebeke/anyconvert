@@ -1,12 +1,13 @@
-package main
+package tools
 
 import (
 	"fmt"
+	"jvanmelckebeke/anyconverter-api/constants"
 	"os"
 	"path/filepath"
 )
 
-func fileSize(filename string) int64 {
+func FileSize(filename string) int64 {
 	fileInfo, err := os.Stat(filename)
 	if err != nil {
 		fmt.Println(err)
@@ -15,16 +16,27 @@ func fileSize(filename string) int64 {
 	return fileInfo.Size()
 }
 
-func bytesToHuman(raw int64) string {
+func BytesToHuman(raw int64) string {
 	return humanSize(raw)
 }
 
-func convertPath(inputFname, outputExt string) string {
+func ConvertToWorkPath(inputFname, outputExt string) string {
 	baseName, _ := splitExt(filepath.Base(inputFname))
-	return filepath.Join("/tmp", fmt.Sprintf("%s.%s", baseName, outputExt))
+	return filepath.Join(
+		constants.UploadsDir,
+		fmt.Sprintf("%s.%s", baseName, outputExt))
 }
 
-func convertDirectories(inputFname string) string {
+func ConvertToResultPath(inputPath string) string {
+
+	if inputPath != "" && len(inputPath) > len(constants.UploadsDir)+1 {
+		return inputPath[len(constants.UploadsDir)+1:]
+	}
+
+	return ""
+}
+
+func ConvertDirectories(inputFname string) string {
 	baseName, _ := splitExt(filepath.Base(inputFname))
 	outputDir := filepath.Join("/tmp", baseName)
 

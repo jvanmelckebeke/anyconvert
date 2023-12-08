@@ -106,11 +106,6 @@ export default {
       const response = JSON.parse(xhr.response);
 
 
-      // example success response:
-      // {
-      // "status": "/status/b8724692"
-      // }
-
       this.checkStatus(response.status);
 
     },

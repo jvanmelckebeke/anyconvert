@@ -1,4 +1,4 @@
-package main
+package media
 
 import (
 	"fmt"
@@ -15,9 +15,16 @@ func ffmpegProcess(args ...string) error {
 }
 
 func webmToMp4(inputPath string) (string, error) {
-	output_file_path := convertInputToOutputPath(inputPath, "mp4")
+	return "", fmt.Errorf("not implemented")
 }
 
+func gifToMp4(inputPath string) (string, error) {
+	return "", fmt.Errorf("not implemented")
+}
+
+func animatedWebpToMp4(inputPath string) (string, error) {
+	return "", fmt.Errorf("not implemented")
+}
 func mediaToMp4(inputPath string) (string, error) {
 	if inputPath == "" {
 		return "", fmt.Errorf("empty inputPath provided")
