@@ -37,11 +37,11 @@ func ffmpegProcess(inputFilePath string, outputFilePath string, args ...string) 
 		}
 	}()
 
-	return cmd.Wait()
+	return nil
 }
 
 func webmToMp4(inputPath string) (string, error) {
-	outputFilePath := tools.PrepareOutputFile(inputPath)
+	outputFilePath := tools.PrepareOutputFile(inputPath, ".mp4")
 
 	args := []string{
 		"-y", // overwrite output file if it exists
@@ -96,7 +96,7 @@ func webpToGif(inputPath string) (string, error) {
 
 	frameRate := (timestamps[len(timestamps)-1] - timestamps[0]) / (len(timestamps))
 
-	outputFilePath := tools.PrepareOutputFile(inputPath)
+	outputFilePath := tools.PrepareOutputFile(inputPath, ".gif")
 	frameDir := tools.PrepareFrameDirectory(inputPath)
 
 	// create gif from frames

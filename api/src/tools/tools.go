@@ -45,28 +45,13 @@ func ConvertToResultPath(inputPath string) string {
 	return ""
 }
 
-func PrepareOutputFile(inputFname string) string {
+func PrepareOutputFile(inputFname string, ext string) string {
 	baseName, _ := splitExt(filepath.Base(inputFname))
-	outputPath := filepath.Join("/tmp", baseName)
-
-	if _, err := os.Stat(outputPath); os.IsNotExist(err) {
-		if err := os.Mkdir(outputPath, os.ModePerm); err != nil {
-			fmt.Println(err)
-			return ""
-		}
-	} else {
-		files, err := os.ReadDir(outputPath)
-		if err != nil {
-			fmt.Println(err)
-			return ""
-		}
-		for _, f := range files {
-			if err := os.Remove(filepath.Join(outputPath, f.Name())); err != nil {
-				fmt.Println(err)
-				return ""
-			}
-		}
+	if ext[0] != '.' {
+		ext = fmt.Sprintf(".%s", ext)
 	}
+	baseName = fmt.Sprintf("%s%s", baseName, ext)
+	outputPath := filepath.Join("/tmp", baseName)
 
 	return outputPath
 }
