@@ -110,11 +110,11 @@ RUN make install
 RUN hash -r
 
 
-RUN ldd /app/bin/ffmpeg | grep opt/ffmpeg | cut -d ' ' -f 3 | xargs -i cp {} /app/lib
+# fix lib links
 
-RUN for lib in /app/lib/*.so.*; do \
-    ln -s "$(lib##*/)" "$(lib%%.so.*)"; \
-    done
+CMD ["/bin/sh"]
+
+
 
 # Stage 2: Run the Go app
 FROM alpine:3.17 as runtime
@@ -126,7 +126,7 @@ WORKDIR /app/
 
 RUN --mount=type=cache,target=/var/cache/apk \
     apk update && apk add --no-cache \
-    libwebp-dev \
+    libwebp-dev x264-dev \
     && rm -rf /var/cache/apk/* \
     && rm -rf /var/lib/apt/lists/*
 
@@ -134,8 +134,9 @@ RUN --mount=type=cache,target=/var/cache/apk \
 COPY --from=builder /app/main .
 
 COPY --from=ffmpeg /app/bin/ffmpeg /app/bin/ffmpeg
-COPY --from=ffmpeg /app/bin/ffprobe /app/bin/ffprobe
 COPY --from=ffmpeg /app/lib /app/lib
+
+# rebuild links
 
 ENV PATH="/app/bin:${PATH}"
 
