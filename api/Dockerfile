@@ -1,16 +1,20 @@
 # Stage 1: Generate swagger docs
+
 FROM golang:1.21.5-alpine3.18 as swagger
 
 RUN go install github.com/swaggo/swag/cmd/swag@latest
+
 
 WORKDIR /app
 
 COPY src/domain/ .
 COPY src/api/ .
 COPY src/main.go .
-
+COPY src/dev.go .
 
 RUN swag init
+
+
 
 # Stage 2: Build the Go app
 FROM golang:1.21.5-alpine3.19 as builder
@@ -37,12 +41,17 @@ COPY --from=swagger /app/docs ./docs
 
 COPY src/ .
 
+RUN rm -rf dev.go
+
+ARG FLAGS="prod"
+
 # Build the Go app
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=1 \
     GOARCH=$TARGETARCH \
     go build \
+    -tags "$FLAGS" \
     -v \
     -ldflags="-s -w" \
     -installsuffix cgo \
@@ -95,14 +104,32 @@ RUN ./configure \
     --prefix="/app/ffmpeg_build" \
     --pkg-config-flags="--static" \
     --extra-cflags="-I/app/ffmpeg_build/include" \
-    --extra-ldflags="-L/app/ffmpeg_build/lib" \
-    --extra-libs="-lpthread -lm -s -w" \
+    --extra-ldflags="-L/app/ffmpeg_build/lib -s -w" \
+    --extra-libs="-lpthread -lm" \
     --bindir="/app/bin" \
     --disable-debug \
     --disable-doc \
     --enable-gpl \
     --enable-libwebp \
-    --enable-libx264
+    --enable-libx264 \
+    --enable-small \
+    --disable-network \
+    --disable-lsp \
+    --disable-ffplay \
+    --disable-ffprobe \
+    --disable-pixelutils \
+    --disable-postproc \
+    --disable-alsa \
+    --disable-bsfs \
+    --disable-protocols \
+    --enable-protocol=file \
+    --disable-avdevice \
+    --disable-swscale \
+    --disable-swresample \
+    --disable-autodetect
+
+
+
 
 RUN make clean
 RUN make -j$(nproc)
@@ -126,15 +153,17 @@ WORKDIR /app/
 
 RUN --mount=type=cache,target=/var/cache/apk \
     apk update && apk add --no-cache \
-    libwebp-dev x264-dev \
+    libwebp x264-libs \
     && rm -rf /var/cache/apk/* \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy the Pre-built binary file from the previous stage
+# copy ffmpeg
+COPY --from=ffmpeg /app/bin/ffmpeg /app/bin/ffmpeg
+
+
+# copy app
 COPY --from=builder /app/main .
 
-COPY --from=ffmpeg /app/bin/ffmpeg /app/bin/ffmpeg
-COPY --from=ffmpeg /app/lib /app/lib
 
 # rebuild links
 
