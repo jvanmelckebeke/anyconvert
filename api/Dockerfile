@@ -22,7 +22,7 @@ ENV GIN_MODE=release
 WORKDIR /app
 
 RUN apk update && apk add --no-cache \
-    git g++ libwebp-dev
+    git g++ libwebp-dev binutils
 
 
 # Copy go mod and sum files
@@ -41,14 +41,80 @@ COPY src/ .
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=1 \
-    GOOS=linux \
     GOARCH=$TARGETARCH \
     go build \
-    -a \
+    -v \
     -ldflags="-s -w" \
-    -linkshared \
     -installsuffix cgo \
     -o main .
+
+FROM alpine:3.17 as ffmpeg
+RUN apk update
+
+RUN --mount=type=cache,target=/var/cache/apk \
+    apk add \
+    autoconf \
+    automake \
+    build-base \
+    binutils \
+    bzip2 \
+    cmake \
+    coreutils \
+    expat-dev \
+    file \
+    g++ \
+    gcc \
+    gperf \
+    libtool \
+    x264-dev \
+    make \
+    openssl-dev \
+    python3 \
+    tar \
+    xcb-proto \
+    libwebp-dev \
+    yasm \
+    zlib-dev
+
+WORKDIR /app
+
+RUN mkdir -p /app/ffmpeg_sources /app/ffmpeg_build /app/bin /app/lib
+
+WORKDIR /app/ffmpeg_sources
+
+RUN wget -O ffmpeg-snapshot.tar.bz2 https://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2
+
+RUN tar xjvf ffmpeg-snapshot.tar.bz2
+
+WORKDIR /app/ffmpeg_sources/ffmpeg
+
+ENV PATH="/app/bin:${PATH}"
+ENV PKG_CONFIG_PATH="/app/ffmpeg_build/lib/pkgconfig"
+
+RUN ./configure \
+    --prefix="/app/ffmpeg_build" \
+    --pkg-config-flags="--static" \
+    --extra-cflags="-I/app/ffmpeg_build/include" \
+    --extra-ldflags="-L/app/ffmpeg_build/lib" \
+    --extra-libs="-lpthread -lm -s -w" \
+    --bindir="/app/bin" \
+    --disable-debug \
+    --disable-doc \
+    --enable-gpl \
+    --enable-libwebp \
+    --enable-libx264
+
+RUN make clean
+RUN make -j$(nproc)
+RUN make install
+RUN hash -r
+
+
+RUN ldd /app/bin/ffmpeg | grep opt/ffmpeg | cut -d ' ' -f 3 | xargs -i cp {} /app/lib
+
+RUN for lib in /app/lib/*.so.*; do \
+    ln -s "$(lib##*/)" "$(lib%%.so.*)"; \
+    done
 
 # Stage 2: Run the Go app
 FROM alpine:3.17 as runtime
@@ -60,13 +126,18 @@ WORKDIR /app/
 
 RUN --mount=type=cache,target=/var/cache/apk \
     apk update && apk add --no-cache \
-    ffmpeg \
     libwebp-dev \
     && rm -rf /var/cache/apk/* \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the Pre-built binary file from the previous stage
 COPY --from=builder /app/main .
+
+COPY --from=ffmpeg /app/bin/ffmpeg /app/bin/ffmpeg
+COPY --from=ffmpeg /app/bin/ffprobe /app/bin/ffprobe
+COPY --from=ffmpeg /app/lib /app/lib
+
+ENV PATH="/app/bin:${PATH}"
 
 # Expose port 8000 to the outside
 EXPOSE 8000
