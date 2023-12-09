@@ -13,15 +13,16 @@ COPY src/main.go .
 RUN swag init
 
 # Stage 2: Build the Go app
-FROM golang:1.21.5-alpine3.18 as builder
+FROM golang:1.21.5-alpine3.19 as builder
 
 ENV GOCACHE=/root/.cache/go-build
+ENV GIN_MODE=release
 
 # Set the Current Working Directory inside the container
 WORKDIR /app
 
 RUN apk update && apk add --no-cache \
-    git libwebp-dev gcc g++ make
+    git g++ libwebp-dev
 
 
 # Copy go mod and sum files
@@ -39,16 +40,30 @@ COPY src/ .
 # Build the Go app
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    CGO_ENABLED=1 GOOS=linux go build -a -o main .
+    CGO_ENABLED=1 \
+    GOOS=linux \
+    GOARCH=$TARGETARCH \
+    go build \
+    -a \
+    -ldflags="-s -w" \
+    -linkshared \
+    -installsuffix cgo \
+    -o main .
 
 # Stage 2: Run the Go app
-FROM alpine:latest as runtime
+FROM alpine:3.17 as runtime
+
+
+ENV GIN_MODE=release
+
+WORKDIR /app/
 
 RUN --mount=type=cache,target=/var/cache/apk \
-    apk update && apk --no-cache add ffmpeg libwebp-dev
-
-WORKDIR /root/
-
+    apk update && apk add --no-cache \
+    ffmpeg \
+    libwebp-dev \
+    && rm -rf /var/cache/apk/* \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy the Pre-built binary file from the previous stage
 COPY --from=builder /app/main .

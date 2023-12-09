@@ -1,10 +1,11 @@
-name: v2
+name: Docker
 
 
 on:
   push:
     branches:
       - v2
+      - v3
 
 env:
   IMAGE_TAG: ${{ github.ref_name }}

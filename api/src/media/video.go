@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 )
 
-func ffmpegProcess(inputFilePath string, outputFilePath string, args ...string) error {
+func ffmpegProcess(args ...string) error {
 
 	// show the command that is being executed
 	fmt.Println("ffmpeg", args)
@@ -45,7 +45,7 @@ func webmToMp4(inputPath string) (string, error) {
 		outputFilePath,
 	}
 
-	if err := ffmpegProcess(inputPath, outputFilePath, args...); err != nil {
+	if err := ffmpegProcess(args...); err != nil {
 		fmt.Println(err)
 		return "", fmt.Errorf("ffmpeg: error converting to mp4")
 	}
@@ -89,7 +89,7 @@ func webpToGif(inputPath string) (string, error) {
 
 	// create gif from frames
 	for i, img := range images {
-		framePath := fmt.Sprintf("%s/frame_%d.png", outputFilePath, i)
+		framePath := fmt.Sprintf("%s/frame_%d.png", frameDir, i)
 
 		if err := imageToPng(framePath, img); err != nil {
 			return "", err
@@ -104,14 +104,12 @@ func webpToGif(inputPath string) (string, error) {
 		"-pattern_type", "glob",
 		"-i", fmt.Sprintf("%s/frame_*.png", frameDir),
 		"-loop", "0",
-		"-c:v", "libx264",
-		"-preset", "veryslow",
 		"-pix_fmt", "yuv420p",
 		"-vf", "pad=ceil(iw/2)*2:ceil(ih/2)*2",
 		outputFilePath,
 	}
 
-	return outputFilePath, ffmpegProcess(inputPath, outputFilePath, args...)
+	return outputFilePath, ffmpegProcess(args...)
 }
 
 func animatedWebpToMp4(inputPath string) (string, error) {
