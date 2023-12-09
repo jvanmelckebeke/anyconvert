@@ -1,7 +1,7 @@
 #!/bin/bash
 # personal test script to test the api
 
-path_to_image="/home/jarivm/Downloads/animated.webp"
+path_to_video="/home/jarivm/Downloads/large.webm"
 retries=1
 
 ARGS=$(getopt --options "r:" --longoptions "retries:" -- "${@}")
@@ -28,7 +28,7 @@ echo "retries=$retries"
 
 # Step 1: Send a POST request to upload the image
 
-upload_response=$(curl -X POST -F "file=@$path_to_image" http://localhost:8888/api/video)
+upload_response=$(curl -X POST -F "file=@$path_to_video" http://127.0.0.1:8888/api/video)
 
 echo $upload_response
 

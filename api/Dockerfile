@@ -5,12 +5,17 @@ RUN go install github.com/swaggo/swag/cmd/swag@latest
 
 WORKDIR /app
 
-COPY src/ .
+COPY src/domain/ .
+COPY src/api/ .
+COPY src/main.go .
+
 
 RUN swag init
 
 # Stage 2: Build the Go app
 FROM golang:1.21.5-alpine3.18 as builder
+
+ENV GOCACHE=/root/.cache/go-build
 
 # Set the Current Working Directory inside the container
 WORKDIR /app
@@ -23,7 +28,7 @@ RUN apk update && apk add --no-cache \
 COPY src/go.mod src/go.sum ./
 
 # Download all dependencies. Dependencies will be cached if the go.mod and go.sum files are not changed
-RUN --mount=type=cache,target=/go/pkg/mod \
+RUN --mount=type=cache,target=/go/pkg/mod  \
     go mod download
 
 # Copy the source from the current directory to the Working Directory inside the container
@@ -33,12 +38,14 @@ COPY src/ .
 
 # Build the Go app
 RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=1 GOOS=linux go build -a -o main .
 
 # Stage 2: Run the Go app
-FROM alpine:latest
+FROM alpine:latest as runtime
 
-RUN apk --no-cache add ffmpeg libwebp-dev
+RUN --mount=type=cache,target=/var/cache/apk \
+    apk update && apk --no-cache add ffmpeg libwebp-dev
 
 WORKDIR /root/
 

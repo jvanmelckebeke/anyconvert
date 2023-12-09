@@ -41,7 +41,7 @@ func GetResult(c *gin.Context) {
 
 	filepath := task.GetFullOutputPath()
 
-	fmt.Println("retruning full path: ", filepath)
+	fmt.Println("returning full path: ", filepath)
 
 	c.File(filepath)
 }

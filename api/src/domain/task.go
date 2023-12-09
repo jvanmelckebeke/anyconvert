@@ -17,7 +17,7 @@ type Task struct {
 	FileSource string
 	CreatedAt  string
 	Status     string
-	OutputPath string
+	outputPath string
 	ResultURL  string
 	Error      string
 	TaskType   string
@@ -29,7 +29,6 @@ type TaskDTO struct {
 	CreatedAt  string `json:"created_at"`
 	Status     string `json:"status"`
 	FileSource string `json:"fileSource"`
-	OutputPath string `json:"outputPath"`
 	ResultURL  string `json:"resultURL"`
 	Error      string `json:"error"`
 	TaskType   string `json:"taskType"`
@@ -52,7 +51,7 @@ func (t *Task) GetFullSourcePath() string {
 }
 
 func (t *Task) GetFullOutputPath() string {
-	return filepath.Join(constants.UploadsDir, t.OutputPath)
+	return filepath.Join(constants.UploadsDir, t.outputPath)
 }
 
 func (t *Task) ToResponse() *TaskDTO {
@@ -62,7 +61,6 @@ func (t *Task) ToResponse() *TaskDTO {
 		CreatedAt:  t.CreatedAt,
 		Status:     t.Status,
 		FileSource: t.FileSource,
-		OutputPath: t.OutputPath,
 		ResultURL:  t.ResultURL,
 		Error:      t.Error,
 		TaskType:   t.TaskType,
@@ -115,7 +113,7 @@ func (t *Task) Process() {
 
 	outPath = tools.ConvertToResultPath(outPath)
 
-	t.OutputPath = outPath
+	t.outputPath = outPath
 	t.Status = "done"
 	t.ResultURL = constants.CreateResultEndpoint(t.TaskID)
 

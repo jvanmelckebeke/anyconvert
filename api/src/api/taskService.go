@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 type Task = domain.Task
@@ -72,27 +71,6 @@ func (s *TaskService) DelayedDeleteUpload(uploadID string, delay time.Duration) 
 		fmt.Println(err)
 	}
 	delete(s.tasks, uploadID)
-}
-
-func (s *TaskService) SaveFileAndCreateTaskID(c *gin.Context, file *multipart.FileHeader) string {
-	uid := uuid.New().String()[0:8]
-	task := &Task{
-		TaskID:     uid,
-		FileName:   file.Filename,
-		FileSource: fmt.Sprintf("%s_%s", uid, file.Filename),
-		CreatedAt:  time.Now().Format("2006-01-02 15:04:05"),
-		Status:     "pending",
-	}
-	s.tasks[uid] = task
-
-	fpath := task.GetFullSourcePath()
-	if err := c.SaveUploadedFile(file, fpath); err != nil {
-		panic(err)
-	}
-
-	fmt.Printf("File saved to %s\n", fpath)
-	return uid
-
 }
 
 func (s *TaskService) DeleteFailedTasks() {

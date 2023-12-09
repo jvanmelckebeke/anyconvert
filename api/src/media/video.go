@@ -19,25 +19,13 @@ func ffmpegProcess(inputFilePath string, outputFilePath string, args ...string) 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	if err := cmd.Start(); err != nil {
-		return err
+	if err := cmd.Run(); err != nil {
+		log.Printf("Error executing ffmpeg: %s\n", err)
+		return fmt.Errorf("error executing ffmpeg")
 	}
 
-	go func() {
-		inputSize := tools.GetHumanFileSize(inputFilePath)
-
-		for {
-			if err := cmd.Wait(); err != nil {
-				fmt.Println(err)
-				return
-			}
-
-			outputSize := tools.GetHumanFileSize(outputFilePath)
-			fmt.Printf("Converted %s / %s\n", outputSize, inputSize)
-		}
-	}()
-
 	return nil
+
 }
 
 func webmToMp4(inputPath string) (string, error) {
