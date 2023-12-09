@@ -7,13 +7,22 @@ import (
 	"path/filepath"
 )
 
-func FileSize(filename string) int64 {
+func GetFileSize(filename string) (int64, error) {
 	fileInfo, err := os.Stat(filename)
 	if err != nil {
 		fmt.Println(err)
-		return 0
+		return 0, err
 	}
-	return fileInfo.Size()
+	return fileInfo.Size(), nil
+}
+
+func GetHumanFileSize(filename string) string {
+	raw, err := GetFileSize(filename)
+
+	if err != nil {
+		return ""
+	}
+	return BytesToHuman(raw)
 }
 
 func BytesToHuman(raw int64) string {
@@ -36,30 +45,56 @@ func ConvertToResultPath(inputPath string) string {
 	return ""
 }
 
-func ConvertDirectories(inputFname string) string {
+func PrepareOutputFile(inputFname string) string {
 	baseName, _ := splitExt(filepath.Base(inputFname))
-	outputDir := filepath.Join("/tmp", baseName)
+	outputPath := filepath.Join("/tmp", baseName)
 
-	if _, err := os.Stat(outputDir); os.IsNotExist(err) {
-		if err := os.Mkdir(outputDir, os.ModePerm); err != nil {
+	if _, err := os.Stat(outputPath); os.IsNotExist(err) {
+		if err := os.Mkdir(outputPath, os.ModePerm); err != nil {
 			fmt.Println(err)
 			return ""
 		}
 	} else {
-		files, err := os.ReadDir(outputDir)
+		files, err := os.ReadDir(outputPath)
 		if err != nil {
 			fmt.Println(err)
 			return ""
 		}
 		for _, f := range files {
-			if err := os.Remove(filepath.Join(outputDir, f.Name())); err != nil {
+			if err := os.Remove(filepath.Join(outputPath, f.Name())); err != nil {
 				fmt.Println(err)
 				return ""
 			}
 		}
 	}
 
-	return outputDir
+	return outputPath
+}
+
+func PrepareFrameDirectory(inputFname string) string {
+	baseName, _ := splitExt(filepath.Base(inputFname))
+	outputPath := filepath.Join("/tmp", baseName)
+
+	if _, err := os.Stat(outputPath); os.IsNotExist(err) {
+		if err := os.Mkdir(outputPath, os.ModePerm); err != nil {
+			fmt.Println(err)
+			return ""
+		}
+	} else {
+		files, err := os.ReadDir(outputPath)
+		if err != nil {
+			fmt.Println(err)
+			return ""
+		}
+		for _, f := range files {
+			if err := os.Remove(filepath.Join(outputPath, f.Name())); err != nil {
+				fmt.Println(err)
+				return ""
+			}
+		}
+	}
+
+	return outputPath
 }
 
 func splitExt(filename string) (string, string) {

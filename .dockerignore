@@ -13,4 +13,4 @@ build/
 
 node_modules/
 
-test.sh
+test_video.sh

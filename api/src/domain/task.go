@@ -6,6 +6,7 @@ import (
 	"jvanmelckebeke/anyconverter-api/constants"
 	"jvanmelckebeke/anyconverter-api/media"
 	"jvanmelckebeke/anyconverter-api/tools"
+	"log"
 	"path/filepath"
 	"time"
 )
@@ -68,27 +69,27 @@ func (t *Task) ToResponse() *TaskDTO {
 	}
 }
 
-func (t *Task) ProcessAsImage() error {
+func (t *Task) ProcessAsImage() (string, error) {
 	path, err := media.ToJpg(t.GetFullSourcePath())
+	if err != nil {
+		return "", err
+	}
 
 	fmt.Printf("task %s sucessfully converted to jpg at %s", t.TaskID, path)
-
-	if err != nil {
-		return err
-	}
-
-	path = tools.ConvertToResultPath(path)
-	if path == "" {
-		return fmt.Errorf("error converting file")
-	}
-
-	t.OutputPath = path
-
-	return nil
+	return path, nil
 }
 
-func (t *Task) ProcessAsVideo() error {
-	return fmt.Errorf("not implemented")
+func (t *Task) ProcessAsVideo() (string, error) {
+	path, err := media.ToMp4(t.GetFullSourcePath())
+	if err != nil {
+		log.Println(err)
+		return "", err
+	}
+
+	log.Printf("task %s sucessfully converted to mp4 at %s", t.TaskID, path)
+
+	return path, nil
+
 }
 
 func (t *Task) Process() {
@@ -96,11 +97,12 @@ func (t *Task) Process() {
 	fmt.Println("Processing task", t.TaskID)
 
 	var err error
+	var outPath string
 
 	if t.TaskType == "image" {
-		err = t.ProcessAsImage()
+		outPath, err = t.ProcessAsImage()
 	} else if t.TaskType == "video" {
-		err = t.ProcessAsVideo()
+		outPath, err = t.ProcessAsVideo()
 	} else {
 		err = fmt.Errorf("unknown task type")
 	}
@@ -109,8 +111,12 @@ func (t *Task) Process() {
 		t.Status = "error"
 		t.Error = err.Error()
 		return
-	} else {
-		t.Status = "done"
-		t.ResultURL = constants.CreateResultEndpoint(t.TaskID)
 	}
+
+	outPath = tools.ConvertToResultPath(outPath)
+
+	t.OutputPath = outPath
+	t.Status = "done"
+	t.ResultURL = constants.CreateResultEndpoint(t.TaskID)
+
 }

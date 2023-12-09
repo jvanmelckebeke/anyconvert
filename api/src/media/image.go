@@ -6,6 +6,7 @@ import (
 	"image"
 	"image/gif"
 	"image/jpeg"
+	"image/png"
 	"jvanmelckebeke/anyconverter-api/tools"
 	"log"
 	"os"
@@ -112,4 +113,20 @@ func ToJpg(inputPath string) (string, error) {
 	}
 
 	return "", fmt.Errorf("unsupported file type")
+}
+
+func imageToPng(outputPath string, img image.Image) error {
+	output, err := os.Create(outputPath)
+	if err != nil {
+		log.Printf("Error creating output file: %s\n", err)
+		return fmt.Errorf("error creating output file")
+	}
+	defer output.Close()
+
+	if err := png.Encode(output, img); err != nil {
+		log.Printf("Error encoding png file: %s\n", err)
+		return fmt.Errorf("error encoding png file")
+	}
+
+	return nil
 }
