@@ -104,43 +104,44 @@ RUN ./configure \
     --prefix="/app/ffmpeg_build" \
     --pkg-config-flags="--static" \
     --extra-cflags="-I/app/ffmpeg_build/include" \
-    --extra-ldflags="-L/app/ffmpeg_build/lib -s -w" \
+    --extra-ldflags="-L/app/ffmpeg_build/lib" \
     --extra-libs="-lpthread -lm" \
     --bindir="/app/bin" \
+    --arch=$TARGETARCH \
+    \
     --disable-debug \
     --disable-doc \
+    --disable-autodetect \
+    \
     --enable-gpl \
     --enable-libwebp \
     --enable-libx264 \
     --enable-zlib \
     --enable-small \
-    --disable-network \
-    --disable-lsp \
+    \
     --disable-ffplay \
     --disable-ffprobe \
-    --disable-pixelutils \
-    --disable-postproc \
-    --disable-alsa \
-    --disable-bsfs \
-    --disable-protocols \
-    --enable-protocol=file \
+    \
     --disable-avdevice \
     --disable-swresample \
-    --disable-autodetect \
-    --disable-indevs \
-    --disable-outdevs \
-    --disable-encoders \
+    --disable-postproc \
+    --disable-w32threads \
+    --disable-os2threads \
+    --disable-network \
+    --disable-dwt \
+    --disable-lsp \
+    --disable-faan \
+    --disable-pixelutils \
+    --disable-alsa \
+    \
+    --disable-everything \
+    --enable-protocol=file \
     --enable-encoder=libx264,aac,gif \
-    --disable-decoders \
     --enable-decoder=libx264,webp,vp9,vorbis \
     --enable-decoder=gif,png,apng,zlib \
-    --disable-filters \
     --enable-filter=pad,scale \
-    --disable-muxers \
     --enable-muxer=mp4,gif,mov \
-    --disable-demuxers \
     --enable-demuxer=gif,mov,image2,matroska \
-    --disable-parsers \
     --enable-parser=png,webp,aac,gif,h264,vorbis
 
 
