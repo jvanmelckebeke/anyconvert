@@ -127,6 +127,8 @@ RUN ./configure \
     --disable-avdevice \
     --disable-swresample \
     --disable-autodetect \
+    --disable-indevs \
+    --disable-outdevs \
     --disable-encoders \
     --enable-encoder=libx264,aac,gif \
     --disable-decoders \
@@ -135,7 +137,11 @@ RUN ./configure \
     --disable-filters \
     --enable-filter=pad,scale \
     --disable-muxers \
-    --enable-muxer=mp4,gif,mov
+    --enable-muxer=mp4,gif,mov \
+    --disable-demuxers \
+    --enable-demuxer=gif,mov,image2,matroska \
+    --disable-parsers \
+    --enable-parser=png,webp,aac,gif,h264,vorbis
 
 
 
