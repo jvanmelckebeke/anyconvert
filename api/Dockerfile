@@ -112,6 +112,7 @@ RUN ./configure \
     --enable-gpl \
     --enable-libwebp \
     --enable-libx264 \
+    --enable-zlib \
     --enable-small \
     --disable-network \
     --disable-lsp \
@@ -124,9 +125,17 @@ RUN ./configure \
     --disable-protocols \
     --enable-protocol=file \
     --disable-avdevice \
-    --disable-swscale \
     --disable-swresample \
-    --disable-autodetect
+    --disable-autodetect \
+    --disable-encoders \
+    --enable-encoder=libx264,aac,gif \
+    --disable-decoders \
+    --enable-decoder=libx264,webp,vp9,vorbis \
+    --enable-decoder=gif,png,apng,zlib \
+    --disable-filters \
+    --enable-filter=pad,scale \
+    --disable-muxers \
+    --enable-muxer=mp4,gif,mov
 
 
 
