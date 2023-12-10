@@ -21,6 +21,10 @@ export default defineConfig(
             server: {
                 host: true,
                 port: PORT
+            },
+            build: {
+                minify: 'esbuild',
+                cssMinify: 'lightningcss'
             }
         }
     })
