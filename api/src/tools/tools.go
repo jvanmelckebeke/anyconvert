@@ -7,28 +7,6 @@ import (
 	"path/filepath"
 )
 
-func GetFileSize(filename string) (int64, error) {
-	fileInfo, err := os.Stat(filename)
-	if err != nil {
-		fmt.Println(err)
-		return 0, err
-	}
-	return fileInfo.Size(), nil
-}
-
-func GetHumanFileSize(filename string) string {
-	raw, err := GetFileSize(filename)
-
-	if err != nil {
-		return ""
-	}
-	return BytesToHuman(raw)
-}
-
-func BytesToHuman(raw int64) string {
-	return humanSize(raw)
-}
-
 func ConvertToWorkPath(inputFname, outputExt string) string {
 	baseName, _ := splitExt(filepath.Base(inputFname))
 	return filepath.Join(
@@ -86,36 +64,4 @@ func splitExt(filename string) (string, string) {
 	ext := filepath.Ext(filename)
 	base := filename[:len(filename)-len(ext)]
 	return base, ext
-}
-
-func humanSize(size int64) string {
-	const (
-		_        = iota
-		kB int64 = 1 << (10 * iota)
-		mB
-		gB
-		tB
-		pB
-		eB
-	)
-
-	sizeUnits := []struct {
-		suffix string
-		size   int64
-	}{
-		{"EB", eB},
-		{"PB", pB},
-		{"TB", tB},
-		{"GB", gB},
-		{"MB", mB},
-		{"kB", kB},
-	}
-
-	for _, unit := range sizeUnits {
-		if size >= unit.size {
-			return fmt.Sprintf("%.2f %s", float64(size)/float64(unit.size), unit.suffix)
-		}
-	}
-
-	return fmt.Sprintf("%d B", size)
 }
