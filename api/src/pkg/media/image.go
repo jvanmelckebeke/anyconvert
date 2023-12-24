@@ -7,7 +7,7 @@ import (
 	"image/gif"
 	"image/jpeg"
 	"image/png"
-	"jvanmelckebeke/anyconverter-api/tools"
+	"jvanmelckebeke/anyconverter-api/pkg/tools"
 	"log"
 	"os"
 	"path/filepath"

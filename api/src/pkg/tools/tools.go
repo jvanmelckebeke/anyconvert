@@ -2,7 +2,7 @@ package tools
 
 import (
 	"fmt"
-	"jvanmelckebeke/anyconverter-api/constants"
+	"jvanmelckebeke/anyconverter-api/pkg/constants"
 	"os"
 	"path/filepath"
 )

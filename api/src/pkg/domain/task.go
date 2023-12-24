@@ -3,9 +3,9 @@ package domain
 import (
 	"fmt"
 	"github.com/google/uuid"
-	"jvanmelckebeke/anyconverter-api/constants"
-	"jvanmelckebeke/anyconverter-api/media"
-	"jvanmelckebeke/anyconverter-api/tools"
+	constants2 "jvanmelckebeke/anyconverter-api/pkg/constants"
+	media2 "jvanmelckebeke/anyconverter-api/pkg/media"
+	"jvanmelckebeke/anyconverter-api/pkg/tools"
 	"log"
 	"path/filepath"
 	"time"
@@ -47,11 +47,11 @@ func NewTask(fileName, taskType string) *Task {
 }
 
 func (t *Task) GetFullSourcePath() string {
-	return filepath.Join(constants.UploadsDir, t.FileSource)
+	return filepath.Join(constants2.UploadsDir, t.FileSource)
 }
 
 func (t *Task) GetFullOutputPath() string {
-	return filepath.Join(constants.UploadsDir, t.outputPath)
+	return filepath.Join(constants2.UploadsDir, t.outputPath)
 }
 
 func (t *Task) ToResponse() *TaskDTO {
@@ -68,7 +68,7 @@ func (t *Task) ToResponse() *TaskDTO {
 }
 
 func (t *Task) ProcessAsImage() (string, error) {
-	path, err := media.ToJpg(t.GetFullSourcePath())
+	path, err := media2.ToJpg(t.GetFullSourcePath())
 	if err != nil {
 		return "", err
 	}
@@ -78,7 +78,7 @@ func (t *Task) ProcessAsImage() (string, error) {
 }
 
 func (t *Task) ProcessAsVideo() (string, error) {
-	path, err := media.ToMp4(t.GetFullSourcePath())
+	path, err := media2.ToMp4(t.GetFullSourcePath())
 	if err != nil {
 		log.Println(err)
 		return "", err
@@ -115,6 +115,6 @@ func (t *Task) Process() {
 
 	t.outputPath = outPath
 	t.Status = "done"
-	t.ResultURL = constants.CreateResultEndpoint(t.TaskID)
+	t.ResultURL = constants2.CreateResultEndpoint(t.TaskID)
 
 }

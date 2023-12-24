@@ -1,6 +1,9 @@
 version: '3.8'
 services:
   api:
+    depends_on:
+      database:
+        condition: service_healthy
     container_name: api
     build:
       context: ./api
@@ -11,6 +14,19 @@ services:
       - 8000:8000
     networks:
       - webconvert
+      - data
+
+  database:
+    container_name: database
+    image: redis:7-alpine3.19
+    expose:
+      - 6379
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+    networks:
+      - data
 
   frontend:
     container_name: frontend
@@ -36,3 +52,4 @@ networks:
   webconvert:
     driver: bridge
     name: webconvert
+  data:

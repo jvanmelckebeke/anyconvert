@@ -3,8 +3,8 @@ package media
 import (
 	"fmt"
 	"github.com/tidbyt/go-libwebp/webp"
-	"jvanmelckebeke/anyconverter-api/env"
-	"jvanmelckebeke/anyconverter-api/tools"
+	"jvanmelckebeke/anyconverter-api/pkg/env"
+	"jvanmelckebeke/anyconverter-api/pkg/tools"
 	"log"
 	"os"
 	"os/exec"

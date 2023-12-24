@@ -2,7 +2,7 @@ package api
 
 import (
 	"fmt"
-	"jvanmelckebeke/anyconverter-api/constants"
+	"jvanmelckebeke/anyconverter-api/pkg/constants"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

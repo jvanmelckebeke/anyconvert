@@ -2,7 +2,7 @@ package api
 
 import (
 	"fmt"
-	"jvanmelckebeke/anyconverter-api/domain"
+	"jvanmelckebeke/anyconverter-api/pkg/domain"
 	"mime/multipart"
 	"os"
 	"time"

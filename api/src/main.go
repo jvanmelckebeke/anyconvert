@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"jvanmelckebeke/anyconverter-api/api"
-	"jvanmelckebeke/anyconverter-api/constants"
+	"jvanmelckebeke/anyconverter-api/pkg/api"
+	"jvanmelckebeke/anyconverter-api/pkg/constants"
 )
 
 func main() {
