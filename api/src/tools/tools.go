@@ -23,6 +23,14 @@ func ConvertToResultPath(inputPath string) string {
 	return ""
 }
 
+func GetEnv(key, fallback string) string {
+	value, exists := os.LookupEnv(key)
+	if !exists {
+		return fallback
+	}
+	return value
+}
+
 func PrepareOutputFile(inputFname string, ext string) string {
 	baseName, _ := splitExt(filepath.Base(inputFname))
 	if ext[0] != '.' {
