@@ -7,10 +7,10 @@ RUN go install github.com/swaggo/swag/cmd/swag@latest
 
 WORKDIR /app
 
-COPY src/domain/ .
-COPY src/api/ .
-COPY src/main.go .
-COPY src/dev.go .
+COPY pkg/domain/ .
+COPY pkg/api/ .
+COPY pkg/main.go .
+COPY pkg/dev.go .
 
 RUN swag init
 
@@ -30,7 +30,7 @@ RUN apk update && apk add --no-cache \
 
 
 # Copy go mod and sum files
-COPY src/go.mod src/go.sum ./
+COPY pkg/go.mod pkg/go.sum ./
 
 # Download all dependencies. Dependencies will be cached if the go.mod and go.sum files are not changed
 RUN --mount=type=cache,target=/go/pkg/mod  \
@@ -39,7 +39,7 @@ RUN --mount=type=cache,target=/go/pkg/mod  \
 # Copy the source from the current directory to the Working Directory inside the container
 COPY --from=swagger /app/docs ./docs
 
-COPY src/ .
+COPY pkg/ .
 
 RUN rm -rf dev.go
 
@@ -117,7 +117,6 @@ RUN ./configure \
     --enable-libwebp \
     --enable-libx264 \
     --enable-zlib \
-    --enable-small \
     \
     --disable-ffplay \
     --disable-ffprobe \
@@ -164,6 +163,7 @@ FROM alpine:3.17 as runtime
 
 
 ENV GIN_MODE=release
+ENV FFMPEG_VERBOSITY=error
 
 WORKDIR /app/
 

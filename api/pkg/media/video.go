@@ -3,6 +3,7 @@ package media
 import (
 	"fmt"
 	"github.com/tidbyt/go-libwebp/webp"
+	"jvanmelckebeke/anyconverter-api/env"
 	"jvanmelckebeke/anyconverter-api/tools"
 	"log"
 	"os"
@@ -31,9 +32,11 @@ func ffmpegProcess(args ...string) error {
 func webmToMp4(inputPath string) (string, error) {
 	outputFilePath := tools.PrepareOutputFile(inputPath, ".mp4")
 
+	verbosity := env.GetEnv("FFMPEG_VERBOSITY", "error")
+
 	args := []string{
 		"-y", // overwrite output file if it exists
-		"-v", "error",
+		"-v", verbosity,
 		"-i", inputPath,
 		"-map", "V:0?",
 		"-map", "0:a?",

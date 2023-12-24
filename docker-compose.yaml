@@ -4,7 +4,9 @@ services:
     container_name: api
     build:
       context: ./api
-    image: jvanmelckebeke/anyconvert-api:v3
+    image: jvanmelckebeke/anyconvert-api:v4
+    environment:
+      - FFMPEG_VERBOSITY=info
     ports:
       - 8000:8000
     networks:
@@ -18,7 +20,7 @@ services:
       - "traefik.http.services.converter.loadbalancer.server.port=80"
     build:
       context: ./frontend
-    image: jvanmelckebeke/anyconvert-ui:v3
+    image: jvanmelckebeke/anyconvert-ui:v4
     volumes:
       - ./resolver.conf:/etc/nginx/conf.d/resolver.conf:ro
     ports:
