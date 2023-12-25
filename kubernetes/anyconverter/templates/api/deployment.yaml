@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: anyconverter-api
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: anyconverter
+    component: api
+spec:
+  selector:
+    matchLabels:
+      app: anyconverter
+      component: api
+  replicas: {{ .Values.api.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: anyconverter
+        component: api
+    spec:
+      containers:
+        - name: anyconverter-api
+          image: {{ .Values.api.image.repository }}:{{ .Values.api.image.tag }}
+          imagePullPolicy: {{ .Values.api.image.pullPolicy }}
+          livenessProbe:
+            tcpSocket:
+              port: 8000
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+            periodSeconds: 10
+          env:
+            - name: PORT
+              value: {{ .Values.api.port | quote }}
+            - name: FFMPEG_VERBOSITY
+              value: {{ .Values.api.env.ffmpegVerbosity | quote }}
+            - name: REDIS_HOST
+              value: "redis.{{ .Release.Namespace }}.svc.cluster.local"
+          ports:
+            - containerPort: {{ .Values.api.port }}
+              name: api-http

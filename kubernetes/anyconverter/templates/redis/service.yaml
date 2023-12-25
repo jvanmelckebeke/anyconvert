@@ -1,0 +1,15 @@
+version: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    app: anyconverter
+    component: database
+  type: ClusterIP
+  ports:
+    - name: db
+      port: 6379
+      targetPort: 6379
+      protocol: TCP

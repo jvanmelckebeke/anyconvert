@@ -1,0 +1,36 @@
+# Default values for anyconverter.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+api:
+  replicaCount: 1
+  port: 8000
+  env:
+    ffmpegVerbosity: warning
+    redisHost: database
+  image:
+    repository: jvanmelckebeke/anyconvert-api
+    tag: v4
+    pullPolicy: Always
+
+ui:
+  replicaCount: 1
+  port: 80
+  image:
+    repository: jvanmelckebeke/anyconvert-ui
+    tag: v4
+    pullPolicy: Always
+
+  ingress:
+    enabled: true
+    tls: false
+    ingressClassName: traefik
+    hosts:
+      - host: converter.cluster.lan
+        paths: [ "/" ]
+
+database:
+  image:
+    repository: redis
+    tag: 7-alpine3.19
+    pullPolicy: Always

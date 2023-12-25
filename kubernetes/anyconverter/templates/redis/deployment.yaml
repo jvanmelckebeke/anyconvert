@@ -1,0 +1,34 @@
+# deployment k8s for redis
+version: apps/v1
+kind: Deployment
+metadata:
+  name: redis-deployment
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: anyconverter
+    component: database
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        app: anyconverter
+        component: database
+    template:
+      metadata:
+        labels:
+          app: anyconverter
+          component: database
+      spec:
+        containers:
+          - name: redis
+            image: {{ .Values.database.image.repository }}:{{ .Values.database.image.tag }}
+            imagePullPolicy: {{ .Values.database.image.pullPolicy }}
+            ports:
+              - containerPort: 6379
+            resources:
+              requests:
+                memory: "64Mi"
+                cpu: "250m"
+              limits:
+                memory: "128Mi"
+                cpu: "500m"
