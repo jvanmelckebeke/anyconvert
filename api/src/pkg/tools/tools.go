@@ -3,6 +3,7 @@ package tools
 import (
 	"fmt"
 	"jvanmelckebeke/anyconverter-api/pkg/constants"
+	"jvanmelckebeke/anyconverter-api/pkg/logger"
 	"os"
 	"path/filepath"
 )
@@ -40,7 +41,7 @@ func PrepareFrameDirectory(inputFname string) string {
 
 	if _, err := os.Stat(outputPath); os.IsNotExist(err) {
 		if err := os.Mkdir(outputPath, os.ModePerm); err != nil {
-			fmt.Println(err)
+			logger.Error("error creating dir", "dir", outputPath)
 			return ""
 		}
 	} else {

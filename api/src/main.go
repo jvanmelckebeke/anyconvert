@@ -1,10 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"jvanmelckebeke/anyconverter-api/pkg/api"
 	"jvanmelckebeke/anyconverter-api/pkg/constants"
+	"jvanmelckebeke/anyconverter-api/pkg/logger"
 )
 
 func main() {
@@ -26,7 +26,7 @@ func main() {
 	r.POST("/video", api.PostVideo)
 
 	if err := r.Run(":8000"); err != nil {
-		fmt.Println(err)
+		logger.Error("error running gin", err)
 		panic(err)
 	}
 

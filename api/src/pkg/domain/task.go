@@ -3,10 +3,7 @@ package domain
 import (
 	"fmt"
 	"github.com/google/uuid"
-	constants2 "jvanmelckebeke/anyconverter-api/pkg/constants"
-	media2 "jvanmelckebeke/anyconverter-api/pkg/media"
-	"jvanmelckebeke/anyconverter-api/pkg/tools"
-	"log"
+	"jvanmelckebeke/anyconverter-api/pkg/constants"
 	"path/filepath"
 	"time"
 )
@@ -17,7 +14,7 @@ type Task struct {
 	FileSource string
 	CreatedAt  string
 	Status     string
-	outputPath string
+	OutputPath string
 	ResultURL  string
 	Error      string
 	TaskType   string
@@ -47,11 +44,11 @@ func NewTask(fileName, taskType string) *Task {
 }
 
 func (t *Task) GetFullSourcePath() string {
-	return filepath.Join(constants2.UploadsDir, t.FileSource)
+	return filepath.Join(constants.UploadsDir, t.FileSource)
 }
 
 func (t *Task) GetFullOutputPath() string {
-	return filepath.Join(constants2.UploadsDir, t.outputPath)
+	return filepath.Join(constants.UploadsDir, t.OutputPath)
 }
 
 func (t *Task) ToResponse() *TaskDTO {
@@ -67,54 +64,31 @@ func (t *Task) ToResponse() *TaskDTO {
 	}
 }
 
-func (t *Task) ProcessAsImage() (string, error) {
-	path, err := media2.ToJpg(t.GetFullSourcePath())
-	if err != nil {
-		return "", err
+func (t *Task) ToMap() map[string]string {
+	return map[string]string{
+		"taskID":     t.TaskID,
+		"fileName":   t.FileName,
+		"createdAt":  t.CreatedAt,
+		"status":     t.Status,
+		"file":       t.FileSource,
+		"resultURL":  t.ResultURL,
+		"error":      t.Error,
+		"taskType":   t.TaskType,
+		"outputPath": t.OutputPath,
 	}
-
-	fmt.Printf("task %s sucessfully converted to jpg at %s", t.TaskID, path)
-	return path, nil
 }
 
-func (t *Task) ProcessAsVideo() (string, error) {
-	path, err := media2.ToMp4(t.GetFullSourcePath())
-	if err != nil {
-		log.Println(err)
-		return "", err
-	}
+func TaskFromMap(data map[string]string) *Task {
+	t := &Task{}
+	t.TaskID = data["taskID"]
+	t.FileName = data["fileName"]
+	t.CreatedAt = data["createdAt"]
+	t.Status = data["status"]
+	t.FileSource = data["file"]
+	t.ResultURL = data["resultURL"]
+	t.Error = data["error"]
+	t.TaskType = data["taskType"]
+	t.OutputPath = data["outputPath"]
 
-	log.Printf("task %s sucessfully converted to mp4 at %s", t.TaskID, path)
-
-	return path, nil
-
-}
-
-func (t *Task) Process() {
-	t.Status = "processing"
-	fmt.Println("Processing task", t.TaskID)
-
-	var err error
-	var outPath string
-
-	if t.TaskType == "image" {
-		outPath, err = t.ProcessAsImage()
-	} else if t.TaskType == "video" {
-		outPath, err = t.ProcessAsVideo()
-	} else {
-		err = fmt.Errorf("unknown task type")
-	}
-
-	if err != nil {
-		t.Status = "error"
-		t.Error = err.Error()
-		return
-	}
-
-	outPath = tools.ConvertToResultPath(outPath)
-
-	t.outputPath = outPath
-	t.Status = "done"
-	t.ResultURL = constants2.CreateResultEndpoint(t.TaskID)
-
+	return t
 }

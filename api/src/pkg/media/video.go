@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/tidbyt/go-libwebp/webp"
 	"jvanmelckebeke/anyconverter-api/pkg/env"
+	"jvanmelckebeke/anyconverter-api/pkg/logger"
 	"jvanmelckebeke/anyconverter-api/pkg/tools"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -14,14 +14,14 @@ import (
 func ffmpegProcess(args ...string) error {
 
 	// show the command that is being executed
-	fmt.Println("ffmpeg", args)
+	logger.Debug("ffmpeg command executing with args", "args", args)
 
 	cmd := exec.Command("ffmpeg", args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Run(); err != nil {
-		log.Printf("Error executing ffmpeg: %s\n", err)
+		logger.Error("error executing ffmpeg", err)
 		return fmt.Errorf("error executing ffmpeg")
 	}
 
@@ -32,7 +32,7 @@ func ffmpegProcess(args ...string) error {
 func webmToMp4(inputPath string) (string, error) {
 	outputFilePath := tools.PrepareOutputFile(inputPath, ".mp4")
 
-	verbosity := env.GetEnv("FFMPEG_VERBOSITY", "error")
+	verbosity := env.Getenv("FFMPEG_VERBOSITY", "error")
 
 	args := []string{
 		"-y", // overwrite output file if it exists
@@ -49,7 +49,7 @@ func webmToMp4(inputPath string) (string, error) {
 	}
 
 	if err := ffmpegProcess(args...); err != nil {
-		fmt.Println(err)
+		logger.Error("error executing ffmpeg", err)
 		return "", fmt.Errorf("ffmpeg: error converting to mp4")
 	}
 
@@ -65,20 +65,20 @@ func gifToMp4(inputPath string) (string, error) {
 func webpToGif(inputPath string) (string, error) {
 	data, err := os.ReadFile(inputPath)
 	if err != nil {
-		log.Printf("Error reading file: %s\n", err)
+		logger.Error("error reading file", "file", inputPath, err)
 		return "", fmt.Errorf("error reading file")
 	}
 
 	dec, err := webp.NewAnimationDecoder(data)
 	if err != nil {
-		log.Printf("Error creating animation decoder: %s\n", err)
+		logger.Error("error creating animation decoder", err)
 		return "", fmt.Errorf("error creating animation decoder")
 	}
 	defer dec.Close()
 
 	anim, err := dec.Decode()
 	if err != nil {
-		log.Printf("Error decoding animation: %s\n", err)
+		logger.Error("error decoding animation", err)
 		return "", fmt.Errorf("error decoding animation")
 	}
 
@@ -86,6 +86,10 @@ func webpToGif(inputPath string) (string, error) {
 	images := anim.Image
 
 	frameRate := (timestamps[len(timestamps)-1] - timestamps[0]) / (len(timestamps))
+
+	if frameRate == 0 {
+		frameRate = 1
+	}
 
 	outputFilePath := tools.PrepareOutputFile(inputPath, ".gif")
 	frameDir := tools.PrepareFrameDirectory(inputPath)

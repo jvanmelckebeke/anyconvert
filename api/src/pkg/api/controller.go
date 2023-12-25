@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"jvanmelckebeke/anyconverter-api/pkg/constants"
+	"jvanmelckebeke/anyconverter-api/pkg/logger"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -41,7 +42,7 @@ func GetResult(c *gin.Context) {
 
 	filepath := task.GetFullOutputPath()
 
-	fmt.Println("returning full path: ", filepath)
+	logger.Debug("returning full path", "filepath", filepath)
 
 	c.File(filepath)
 }

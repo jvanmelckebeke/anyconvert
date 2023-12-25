@@ -8,7 +8,7 @@ RUN go install github.com/swaggo/swag/cmd/swag@latest
 WORKDIR /app
 
 COPY src/pkg/domain/ .
-COPY src/pkg/api/ .
+COPY src/pkg/api/controller.go .
 COPY src/main.go .
 COPY src/dev.go .
 
