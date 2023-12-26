@@ -1,0 +1,25 @@
+{{- if .Values.commander.ingress.enabled}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: redis-commander-ingress
+  namespace: {{ .Release.Namespace }}
+spec:
+  ingressClassName: {{ .Values.commander.ingress.class }}
+  rules:
+    {{- range $host := .Values.commander.ingress.hosts }}
+    - host: {{ $host.host | quote }}
+      http:
+        paths:
+          {{- range $path := $host.paths }}
+          - path: {{ $path | quote }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $.Values.commander.service.name }}
+                port:
+                  name: http
+          {{- end }}
+    {{- end }}
+
+{{- end }}

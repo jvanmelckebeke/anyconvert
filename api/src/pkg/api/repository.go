@@ -7,6 +7,7 @@ import (
 	"jvanmelckebeke/anyconverter-api/pkg/domain"
 	"jvanmelckebeke/anyconverter-api/pkg/env"
 	"jvanmelckebeke/anyconverter-api/pkg/logger"
+	"time"
 )
 
 type TaskRepository struct {
@@ -56,6 +57,12 @@ func (repo *TaskRepository) Create(task domain.Task) (string, error) {
 
 	logger.Debug("successfully created task", "taskID", taskID)
 
+	err = repo.client.Expire(ctx, taskID, 30*time.Minute).Err()
+	if err != nil {
+		logger.Error("set expire error", err)
+		return "", err
+	}
+
 	return taskID, nil
 }
 
@@ -98,17 +105,39 @@ func (repo *TaskRepository) Delete(taskID string) error {
 	return nil
 }
 
-func (repo *TaskRepository) UpdateTaskStatus(taskID string, status string) (*Task, error) {
+func (repo *TaskRepository) UpdateTask(task Task) (*Task, error) {
 	ctx := context.Background()
-	err := repo.client.HSet(ctx, taskID, "status", status).Err()
+
+	data := task.ToMap()
+	taskID := task.TaskID
+
+	err := repo.client.HSet(ctx, taskID, data).Err()
+
+	if err != nil {
+		return nil, err
+	}
+	return &task, nil
+}
+
+func (repo *TaskRepository) UpdateTaskSingle(taskID string, property string, value any) (*Task, error) {
+	ctx := context.Background()
+
+	err := repo.client.HSet(ctx, taskID, property, value).Err()
 	if err != nil {
 		logger.Error("update task status error", err)
 		return nil, err
 	}
-
 	task := repo.Get(taskID)
 
+	if task == nil {
+		logger.Error("task is nil")
+	}
+
 	return task, nil
+}
+
+func (repo *TaskRepository) UpdateTaskStatus(taskID string, status string) (*Task, error) {
+	return repo.UpdateTaskSingle(taskID, "status", status)
 }
 
 func (repo *TaskRepository) SetTaskError(taskID string, taskError error) {
@@ -126,24 +155,8 @@ func (repo *TaskRepository) SetTaskError(taskID string, taskError error) {
 	}
 }
 
-func (repo *TaskRepository) UpdateTask(task Task) (*Task, error) {
-	ctx := context.Background()
-
-	data := task.ToMap()
-	taskID := task.TaskID
-
-	err := repo.client.HSet(ctx, taskID, data).Err()
-
-	if err != nil {
-		return nil, err
-	}
-	return &task, nil
-}
-
 func (repo *TaskRepository) SetOutputPath(id string, path string) {
-	ctx := context.Background()
-
-	err := repo.client.HSet(ctx, id, "outputPath", path).Err()
+	_, err := repo.UpdateTaskSingle(id, "outputPath", path)
 	if err != nil {
 		logger.Error("set output path error", err)
 		return

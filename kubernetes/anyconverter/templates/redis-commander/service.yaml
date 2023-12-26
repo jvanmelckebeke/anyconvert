@@ -1,0 +1,17 @@
+{{- if .Values.commander.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.commander.service.name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    app: anyconverter
+    component: redis-commander
+  type: ClusterIP
+  ports:
+    - name: http
+      port: {{ .Values.commander.service.port }}
+      targetPort: {{ .Values.commander.service.port }}
+      protocol: TCP
+{{- end}}

@@ -1,0 +1,58 @@
+{{- if .Values.commander.enabled}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-commander
+  namespace: {{.Release.Namespace}}
+  labels:
+    app: anyconverter
+    component: redis-commander
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: anyconverter
+      component: redis-commander
+  template:
+    metadata:
+      labels:
+        app: anyconverter
+        component: redis-commander
+        tier: backend
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: redis-commander
+          image: {{.Values.commander.image.repository}}:{{.Values.commander.image.tag}}
+          imagePullPolicy: Always
+          env:
+            - name: REDIS_HOSTS
+              value: "redis:{{.Values.database.service.name}}.{{.Release.Namespace}}.svc.cluster.local:6379"
+            - name: PORT
+              value: {{ .Values.commander.service.port | quote }}
+            - name: K8S_SIGTERM
+              value: "1"
+          ports:
+            - name: redis-commander
+              containerPort: {{ .Values.commander.service.port }}
+          livenessProbe:
+            httpGet:
+              path: /favicon.png
+              port: {{ .Values.commander.service.port }}
+            initialDelaySeconds: 10
+            timeoutSeconds: 5
+          resources:
+            requests:
+              cpu: {{ .Values.commander.resources.requests.cpu }}
+              memory: {{ .Values.commander.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.commander.resources.limits.cpu }}
+              memory: {{ .Values.commander.resources.limits.memory }}
+          securityContext:
+            runAsNonRoot: true
+            readOnlyRootFilesystem: false
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+{{- end }}
