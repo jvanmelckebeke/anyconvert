@@ -18,7 +18,7 @@ ui:
   port: 80
   image:
     repository: jvanmelckebeke/anyconvert-ui
-    tag: v4
+    tag: v3
     pullPolicy: Always
 
   ingress:
