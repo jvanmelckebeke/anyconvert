@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: anyconverter-ui
+  name: {{ .Values.ui.service.name }}
   namespace: {{ .Release.Namespace }}
 spec:
   selector:

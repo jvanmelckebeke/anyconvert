@@ -13,24 +13,33 @@ api:
     tag: v4
     pullPolicy: Always
 
+  service:
+    name: api
+
 ui:
   replicaCount: 1
   port: 80
   image:
     repository: jvanmelckebeke/anyconvert-ui
-    tag: v3
+    tag: v4
     pullPolicy: Always
 
   ingress:
     enabled: true
     tls: false
-    ingressClassName: traefik
+    class: traefik
     hosts:
       - host: converter.cluster.lan
         paths: [ "/" ]
+
+  service:
+    name: "ui"
 
 database:
   image:
     repository: redis
     tag: 7-alpine3.19
     pullPolicy: Always
+
+  service:
+    name: redis

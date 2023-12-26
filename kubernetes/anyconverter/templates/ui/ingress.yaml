@@ -5,7 +5,7 @@ metadata:
   name: anyconverter-ingress
   namespace: {{ .Release.Namespace }}
 spec:
-  ingressClassName: traefik
+  ingressClassName: {{ .Values.ui.ingress.class }}
   rules:
     {{- range $host := .Values.ui.ingress.hosts }}
     - host: {{ $host.host | quote }}
@@ -16,7 +16,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: anyconverter-ui
+                name: {{ $.Values.ui.service.name }}
                 port:
                   name: ui-http
           {{- end }}
