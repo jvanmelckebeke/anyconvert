@@ -30,6 +30,13 @@ spec:
             successThreshold: 1
             failureThreshold: 3
             periodSeconds: 10
+          resources:
+            limits:
+              cpu: {{ .Values.api.resources.limits.cpu }}
+              memory: {{ .Values.api.resources.limits.memory }}
+            requests:
+              cpu: {{ .Values.api.resources.requests.cpu }}
+              memory: {{ .Values.api.resources.requests.memory }}
           env:
             - name: PORT
               value: {{ .Values.api.port | quote }}
@@ -40,3 +47,4 @@ spec:
           ports:
             - containerPort: {{ .Values.api.port }}
               name: api-http
+

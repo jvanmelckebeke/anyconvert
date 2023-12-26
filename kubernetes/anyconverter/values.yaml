@@ -13,6 +13,14 @@ api:
     tag: v4
     pullPolicy: Always
 
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 1024Mi
+    requests:
+      cpu: 200m
+      memory: 128Mi
+
   service:
     name: api
 
@@ -23,6 +31,14 @@ ui:
     repository: jvanmelckebeke/anyconvert-ui
     tag: v4
     pullPolicy: Always
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 64Mi
 
   ingress:
     enabled: true
