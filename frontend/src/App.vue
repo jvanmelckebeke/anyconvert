@@ -56,7 +56,6 @@ export default {
     Image,
   },
   data() {
-
     // retrieve endpoint from /public/endpoint.txt
 
     return {
@@ -67,9 +66,13 @@ export default {
   },
 
   created() {
-    const savedTab = localStorage.getItem('activeTab');
-    if (savedTab != null || savedTab !== undefined) {
-      console.log('active tab loaded from local storage, ' + savedTab)
+    let savedTab = this.$cookies.get('activeTab');
+    if (savedTab === null || savedTab === undefined) {
+      console.log('active tab not found in cookies')
+      this.$cookies.set('activeTab', 0, Infinity);
+      savedTab = 0;
+    } else {
+      console.log('active tab loaded from cookies: ' + savedTab)
       this.activeTab = parseInt(savedTab);
     }
   },
@@ -77,7 +80,7 @@ export default {
   watch: {
     activeTab: function (val) {
       console.log('active tab changed to ' + val)
-      localStorage.setItem('activeTab', val);
+      this.$cookies.set('activeTab', val, Infinity);
     }
   }
 }
