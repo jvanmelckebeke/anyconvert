@@ -58,7 +58,7 @@ database:
 
 commander:
   # redis commander used for debugging purposes
-  enabled: true
+  enabled: false
 
   image:
     repository: ghcr.io/joeferner/redis-commander
