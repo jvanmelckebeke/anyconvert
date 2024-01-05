@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: api
   namespace: {{ .Release.Namespace }}
+  annotations:
+    revision: {{ .Release.Revision }}
   labels:
     app: anyconverter
     component: api

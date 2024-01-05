@@ -4,6 +4,8 @@ kind: Deployment
 metadata:
   name: redis-commander
   namespace: {{.Release.Namespace}}
+  annotations:
+    revision: {{ .Release.Revision }}
   labels:
     app: anyconverter
     component: redis-commander
