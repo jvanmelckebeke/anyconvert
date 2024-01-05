@@ -4,8 +4,6 @@ metadata:
   name: ui
   namespace: {{ .Release.Namespace }}
 
-  annotations:
-    revision: {{ .Release.Revision }}
 
   labels:
     app: anyconverter
@@ -20,8 +18,6 @@ spec:
     metadata:
       name: ui
       namespace: {{ .Release.Namespace }}
-      annotations:
-        revision: {{ .Release.Revision }}
       labels:
         app: anyconverter
         component: ui

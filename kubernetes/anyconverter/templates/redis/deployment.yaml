@@ -4,8 +4,6 @@ kind: Deployment
 metadata:
   name: database
   namespace: {{ .Release.Namespace }}
-  annotations:
-    revision: {{ .Release.Revision }}
   labels:
     app: anyconverter
     component: database
