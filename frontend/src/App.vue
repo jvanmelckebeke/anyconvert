@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <h1>File Converter</h1>
-    <TabView>
+    <TabView v-model:activeIndex="activeTab">
       <TabPanel header="Image">
         <div>
           <UploadTab
@@ -61,11 +61,27 @@ export default {
 
     return {
       loading: true,
-      endpoint: '/api'
+      endpoint: '/api',
+      activeTab: 0,
     };
   },
 
-};
+  created() {
+    const savedTab = localStorage.getItem('activeTab');
+    if (savedTab != null || savedTab !== undefined) {
+      console.log('active tab loaded from local storage, ' + savedTab)
+      this.activeTab = parseInt(savedTab);
+    }
+  },
+
+  watch: {
+    activeTab: function (val) {
+      console.log('active tab changed to ' + val)
+      localStorage.setItem('activeTab', val);
+    }
+  }
+}
+;
 </script>
 
 
