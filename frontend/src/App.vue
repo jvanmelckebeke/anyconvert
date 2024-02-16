@@ -28,7 +28,26 @@
             <template #result="result">
               <div class="output">
 
-                <video :src="result.resultUrl" controls height="240"/>
+                <video :src="result.resultUrl" controls height="240" width="300"/>
+              </div>
+            </template>
+          </UploadTab>
+        </div>
+      </TabPanel>
+      <TabPanel header="Mp3">
+        <div>
+          <UploadTab
+              header="To mp3"
+              :endpoint="endpoint"
+              accept="video/mp4"
+              upload-path="/audio">
+            <template #result="result">
+              <div class="output">
+
+                <audio controls>
+                  <source :src="result.resultUrl" type="audio/mpeg">
+                  Your browser does not support the audio element.
+                </audio>
               </div>
             </template>
           </UploadTab>

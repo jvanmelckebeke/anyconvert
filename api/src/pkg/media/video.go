@@ -148,3 +148,25 @@ func ToMp4(inputPath string) (string, error) {
 
 	return "", fmt.Errorf("unsupported file type")
 }
+
+func Mp4ToMp3(inputPath string) (string, error) {
+	outputFilePath := tools.PrepareOutputFile(inputPath, ".mp3")
+
+	verbosity := env.Getenv("FFMPEG_VERBOSITY", "error")
+
+	args := []string{
+		"-y", // overwrite output file if it exists
+		"-v", verbosity,
+		"-i", inputPath,
+		"-q:a", "0",
+		"-map", "a",
+		outputFilePath,
+	}
+
+	if err := ffmpegProcess(args...); err != nil {
+		logger.Error("error executing ffmpeg", err)
+		return "", fmt.Errorf("ffmpeg: error converting to mp3")
+	}
+
+	return outputFilePath, nil
+}

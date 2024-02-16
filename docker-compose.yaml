@@ -1,7 +1,6 @@
-version: '3.8'
+version: "3.8"
 services:
   api:
-    runtime: runc
     depends_on:
       database:
         condition: service_healthy
@@ -12,14 +11,15 @@ services:
     environment:
       - FFMPEG_VERBOSITY=warning
       - REDIS_HOST=database
+      - SOURCE_DELETE_DELAY=3600 # 1 hour for debugging
+      - RESULT_DELETE_DELAY=3600 # 1 hour for debugging
     ports:
-      - 8000:8000
+      - "8000:8000"
     networks:
       - webconvert
       - data
 
   database:
-    runtime: runc
     container_name: database
     image: redis:7-alpine3.19
     expose:
@@ -32,18 +32,18 @@ services:
       - data
 
   redis-commander:
-    runtime: runc
+    profiles:
+      - debug
     container_name: redis-commander
     image: rediscommander/redis-commander:latest
     ports:
-      - 8081:8081
+      - "38081:8081"
     environment:
       - REDIS_HOSTS=local:database:6379
     networks:
       - data
 
   frontend:
-    runtime: runc
     container_name: frontend
     labels:
       # custom setup for traefik
@@ -54,14 +54,11 @@ services:
     image: jvanmelckebeke/anyconvert-ui:v4
     volumes:
       - ./resolver.conf:/etc/nginx/conf.d/resolver.conf:ro
-    ports:
-      - 8888:80
     environment:
       - API_HOST=api
       - API_PORT=8000
     networks:
       - webconvert
-
 
 networks:
   webconvert:

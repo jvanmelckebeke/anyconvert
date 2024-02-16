@@ -88,6 +88,28 @@ func PostVideo(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": statusEndpoint})
 }
 
+// PostAudio godoc
+// @Summary Convert a video to mp3
+// @Description Convert a video to a mp3 audio file
+// @Accept multipart/form-data
+// @Produce json
+// @Param file formData file true "File to convert"
+// @Success 200 {object} TaskDTO "The status endpoint of the task"
+// @Router /videoToMp3 [post]
+func PostAudio(c *gin.Context) {
+	file, err := c.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	uploadID := service.NewTask(c, file, "audio")
+
+	statusEndpoint := constants.CreateStatusEndpoint(uploadID)
+
+	c.JSON(http.StatusOK, gin.H{"status": statusEndpoint})
+}
+
 // GetTaskStatus godoc
 // @Summary Get a specific task status
 // @Description Get the status of a specific task by its ID

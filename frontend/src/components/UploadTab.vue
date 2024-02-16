@@ -10,9 +10,7 @@
                     @before-send="onSend"
                     @error="onError"/>
       </div>
-
       <br>
-
       <div class="item full-width">
         <slot name="result" :resultUrl="resultUrl" v-if="resultUrl">
           <p v-if="resultUrl">
@@ -25,9 +23,7 @@
             <Skeleton width="100%" height="160px"></Skeleton>
           </div>
         </slot>
-
         <slot name="error" :errorMessage="errorMessage" v-if="errorMessage">
-
           <Message severity="error">
             {{ errorMessage }}
           </Message>

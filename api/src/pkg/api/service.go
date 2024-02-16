@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"jvanmelckebeke/anyconverter-api/pkg/constants"
 	"jvanmelckebeke/anyconverter-api/pkg/domain"
+	"jvanmelckebeke/anyconverter-api/pkg/env"
 	"jvanmelckebeke/anyconverter-api/pkg/logger"
 	"jvanmelckebeke/anyconverter-api/pkg/media"
 	"jvanmelckebeke/anyconverter-api/pkg/tools"
@@ -90,7 +91,26 @@ func (t *TaskService) DeleteTask(taskID string) {
 	}
 }
 
-func (t *TaskService) DelayedDeleteUpload(uploadID string, delay time.Duration) {
+func (t *TaskService) DelayedDeleteSource(uploadID string, delay time.Duration) {
+	time.Sleep(delay * time.Second)
+
+	task := t.repo.Get(uploadID)
+	if task == nil {
+		logger.Warn("task is nil")
+		return
+	}
+
+	fpath := task.GetFullSourcePath()
+	if err := os.Remove(fpath); err != nil {
+		logger.Error("remove path error", "path", fpath, err)
+		return
+	}
+
+	logger.Info("deleted source file", "filepath", fpath)
+
+}
+
+func (t *TaskService) DelayedDeleteOutput(uploadID string, delay time.Duration) {
 	time.Sleep(delay * time.Second)
 
 	task := t.repo.Get(uploadID)
@@ -105,6 +125,8 @@ func (t *TaskService) DelayedDeleteUpload(uploadID string, delay time.Duration) 
 		return
 	}
 	t.DeleteTask(uploadID)
+	logger.Info("deleted output file", "filepath", fpath)
+	logger.Info("deleted task", "taskID", uploadID)
 }
 
 func (t *TaskService) DeleteFailedTasks() {
@@ -129,15 +151,13 @@ func (t *TaskService) ProcessUpload(uploadID string) {
 			return
 		}
 
-		fpath := task.GetFullSourcePath()
-		if err := os.Remove(fpath); err != nil {
-			fmt.Println(err)
-		}
+		sourceDelay := env.GetenvInt("SOURCE_DELETE_DELAY", 300)
+		resultDelay := env.GetenvInt("RESULT_DELETE_DELAY", 300)
 
-		logger.Info("deleted source file", "filepath", fpath)
+		logger.Info("setting delayed delete", "sourceDelay", sourceDelay, "resultDelay", resultDelay, "taskID", uploadID)
 
-		// After 5 minutes, delete the file
-		go t.DelayedDeleteUpload(uploadID, 300)
+		go t.DelayedDeleteSource(uploadID, time.Duration(sourceDelay))
+		go t.DelayedDeleteOutput(uploadID, time.Duration(resultDelay))
 	}()
 
 	task, exists := t.GetTask(uploadID)
@@ -177,6 +197,21 @@ func (t *TaskService) processAsVideo(task *Task) (string, error) {
 
 }
 
+func (t *TaskService) processAsAudio(task *Task) (string, error) {
+	path, err := media.Mp4ToMp3(task.GetFullSourcePath())
+	if err != nil {
+		log.Println(err)
+		return "", err
+	}
+
+	logger.Info("task successfully converted to mp3", "taskID", task.TaskID, "path", path)
+
+	t.repo.SetOutputPath(task.TaskID, path)
+	task.OutputPath = path
+
+	return path, nil
+}
+
 func (t *TaskService) process(task *Task) {
 	task, err := t.repo.UpdateTaskStatus(task.TaskID, "processing")
 	if err != nil {
@@ -191,6 +226,8 @@ func (t *TaskService) process(task *Task) {
 		outPath, err = t.processAsImage(task)
 	} else if task.TaskType == "video" {
 		outPath, err = t.processAsVideo(task)
+	} else if task.TaskType == "audio" {
+		outPath, err = t.processAsAudio(task)
 	} else {
 		err = fmt.Errorf("unknown task type")
 	}

@@ -25,6 +25,8 @@ func main() {
 
 	r.POST("/video", api.PostVideo)
 
+	r.POST("/audio", api.PostAudio)
+
 	if err := r.Run(":8000"); err != nil {
 		logger.Error("error running gin", err)
 		panic(err)

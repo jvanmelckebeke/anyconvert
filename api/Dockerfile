@@ -1,6 +1,7 @@
-# Stage 1: Generate swagger docs
+ARG ALPINE_VERSION=3.19
 
-FROM golang:1.21.5-alpine3.18 as swagger
+# Stage 1: Generate swagger docs
+FROM golang:1.21.5-alpine${ALPINE_VERSION} as swagger
 
 RUN go install github.com/swaggo/swag/cmd/swag@latest
 
@@ -17,7 +18,7 @@ RUN swag init
 
 
 # Stage 2: Build the Go app
-FROM golang:1.21.5-alpine3.19 as builder
+FROM golang:1.21.5-alpine${ALPINE_VERSION} as builder
 
 ENV GOCACHE=/root/.cache/go-build
 ENV GIN_MODE=release
@@ -57,7 +58,7 @@ RUN --mount=type=cache,target=/go/src/mod \
     -installsuffix cgo \
     -o main .
 
-FROM alpine:3.17 as ffmpeg
+FROM alpine:${ALPINE_VERSION} as ffmpeg
 RUN apk update
 
 RUN --mount=type=cache,target=/var/cache/apk \
@@ -82,6 +83,7 @@ RUN --mount=type=cache,target=/var/cache/apk \
     tar \
     xcb-proto \
     libwebp-dev \
+    lame-dev \
     yasm \
     zlib-dev
 
@@ -135,13 +137,15 @@ RUN ./configure \
     \
     --disable-everything \
     --enable-protocol=file \
-    --enable-encoder=libx264,aac,gif \
+    --enable-encoder=libx264,aac,gif,mp3,libmp3lame \
     --enable-decoder=libx264,webp,vp9,vorbis \
-    --enable-decoder=gif,png,apng,zlib \
+    --enable-decoder=gif,png,apng,zlib,aac \
     --enable-filter=pad,scale \
-    --enable-muxer=mp4,gif,mov \
-    --enable-demuxer=gif,mov,image2,matroska \
-    --enable-parser=png,webp,aac,gif,h264,vorbis
+    --enable-muxer=mp4,gif,mov,mp3 \
+    --enable-demuxer=gif,mov,image2,matroska,mp3 \
+    --enable-parser=png,webp,aac,gif,h264,vorbis,mp3 \
+    \
+    --enable-libmp3lame
 
 
 
@@ -159,7 +163,7 @@ CMD ["/bin/sh"]
 
 
 # Stage 2: Run the Go app
-FROM alpine:3.17 as runtime
+FROM alpine:${ALPINE_VERSION} as runtime
 
 
 ENV GIN_MODE=release
@@ -169,7 +173,12 @@ WORKDIR /app/
 
 RUN --mount=type=cache,target=/var/cache/apk \
     apk update && apk add --no-cache \
-    libwebp x264-libs \
+    libwebp \
+    libwebpmux \
+    libwebpdemux \
+    x264-libs \
+    lame-libs \
+    \
     && rm -rf /var/cache/apk/* \
     && rm -rf /var/lib/apt/lists/*
 
