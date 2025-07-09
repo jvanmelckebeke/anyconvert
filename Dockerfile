@@ -131,7 +131,7 @@ FROM python:${RUNTIME_TAG_AMD64} as dependencies-amd64
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apk update && \
-  apk add --no-cache\
+    apk add --no-cache\
     ffmpeg \
     libbz2 \
     fftw-double-libs \
@@ -159,9 +159,9 @@ COPY --from=build /venv/bin/uvicorn /usr/local/bin/uvicorn
 ENV PATH="/usr/local/bin:$PATH"
 
 # otherwise matplotlib will always try to build the font cache
-RUN python -c "import matplotlib.pyplot" && \
-    find -name "__pycache__" -exec rm -rf {} + && \
-    find -name "*.py[cod]" -delete
+# RUN python -c "import matplotlib.pyplot" && \
+#    find -name "__pycache__" -exec rm -rf {} + && \
+#    find -name "*.py[cod]" -delete
 
 
 WORKDIR /app
