@@ -78,6 +78,7 @@ RUN --mount=type=cache,target=/var/cache/apk \
     x264-dev \
     make \
     openssl-dev \
+    nasm \
     python3 \
     tar \
     xcb-proto \
@@ -124,7 +125,6 @@ RUN ./configure \
     \
     --disable-avdevice \
     --disable-swresample \
-    --disable-postproc \
     --disable-w32threads \
     --disable-os2threads \
     --disable-network \
