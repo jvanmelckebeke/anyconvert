@@ -84,6 +84,7 @@ RUN --mount=type=cache,target=/var/cache/apk \
     xcb-proto \
     libwebp-dev \
     lame-dev \
+    nasm \
     yasm \
     zlib-dev
 
@@ -125,7 +126,6 @@ RUN ./configure \
     \
     --disable-avdevice \
     --disable-swresample \
-    --disable-postproc \
     --disable-w32threads \
     --disable-os2threads \
     --disable-network \
